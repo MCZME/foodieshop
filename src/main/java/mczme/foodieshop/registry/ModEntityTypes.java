@@ -2,7 +2,7 @@ package mczme.foodieshop.registry;
 
 import java.util.function.Supplier;
 
-import mczme.foodieshop.FoodiesShop;
+import mczme.foodieshop.FoodieShop;
 import mczme.foodieshop.entity.FoodieEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
@@ -12,7 +12,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class ModEntityTypes {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
-            DeferredRegister.create(Registries.ENTITY_TYPE, FoodiesShop.MODID);
+            DeferredRegister.create(Registries.ENTITY_TYPE, FoodieShop.MODID);
 
     public static final Supplier<EntityType<FoodieEntity>> FOODIE =
             ENTITY_TYPES.register("foodie",
