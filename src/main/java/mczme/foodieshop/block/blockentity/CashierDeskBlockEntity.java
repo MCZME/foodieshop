@@ -144,6 +144,27 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         return this.shopConfig.getCashBoxPos();
     }
 
+    public boolean canEdit(Player player) {
+        if (player == null) {
+            return false;
+        }
+        // 创造模式下的OP或具有权限的玩家可以编辑
+        if (player.isCreative() && player.hasPermissions(2)) {
+            return true;
+        }
+        // 店主可以编辑
+        if (this.shopConfig.getShopOwnerUUID() != null && !this.shopConfig.getShopOwnerUUID().isEmpty()) {
+            try {
+                UUID ownerUUID = UUID.fromString(this.shopConfig.getShopOwnerUUID());
+                return player.getUUID().equals(ownerUUID);
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+        }
+        // 如果没有店主，则任何OP都可以编辑
+        return player.hasPermissions(2); // OP level 2
+    }
+
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);

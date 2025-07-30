@@ -4,8 +4,10 @@ import java.util.concurrent.CompletableFuture;
 
 import mczme.foodieshop.FoodieShop;
 import mczme.foodieshop.client.entityrenderer.FoodieEntityRenderer;
+import mczme.foodieshop.client.renderer.ShopLayoutRenderer;
 import mczme.foodieshop.data.language.ZH_CN;
-import mczme.foodieshop.data.model.FoodieShopModelProvider;
+import mczme.foodieshop.data.modelprovider.FoodieShopModelProvider;
+import mczme.foodieshop.registry.ModBlockEntities;
 import mczme.foodieshop.registry.ModEntityTypes;
 import mczme.foodieshop.registry.ModMenuTypes;
 import mczme.foodieshop.screen.ShopConfigScreen;
@@ -30,6 +32,7 @@ public class ModEventClient {
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntityTypes.FOODIE.get(), FoodieEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CASHIER_DESK_BE.get(), ShopLayoutRenderer::new);
     }
 
     @SubscribeEvent

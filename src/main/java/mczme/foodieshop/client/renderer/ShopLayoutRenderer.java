@@ -1,0 +1,144 @@
+package mczme.foodieshop.client.renderer;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import mczme.foodieshop.api.shop.SeatInfo;
+import mczme.foodieshop.api.shop.ShopConfig;
+import mczme.foodieshop.api.shop.TableInfo;
+import mczme.foodieshop.block.blockentity.CashierDeskBlockEntity;
+import mczme.foodieshop.registry.ModItems;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+
+public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockEntity> {
+    private static final float MARKER_SIZE = 0.2f;
+
+    public ShopLayoutRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    @Override
+    public void render(CashierDeskBlockEntity blockEntity, float partialTick,
+                      PoseStack poseStack, MultiBufferSource bufferSource,
+                      int packedLight, int packedOverlay) {
+
+        Player player = Minecraft.getInstance().player;
+        if (player == null || !isHoldingBlueprintPen(player)) {
+            return;
+        }
+
+        if (!blockEntity.canEdit(player)) {
+            return;
+        }
+
+        ShopConfig config = blockEntity.getShopConfig();
+        if (config == null) {
+            return;
+        }
+        
+        poseStack.pushPose();
+        
+        BlockPos origin = blockEntity.getBlockPos();
+        renderShopArea(config, poseStack, bufferSource, origin);
+        renderTables(config, poseStack, bufferSource, origin);
+        renderSeats(config, poseStack, bufferSource, origin);
+        renderPath(config, poseStack, bufferSource, origin);
+        
+        poseStack.popPose();
+    }
+
+    private boolean isHoldingBlueprintPen(Player player) {
+        return player.getMainHandItem().is(ModItems.DINER_BLUEPRINT_PEN.get()) ||
+               player.getOffhandItem().is(ModItems.DINER_BLUEPRINT_PEN.get());
+    }
+
+    private void renderShopArea(ShopConfig config, PoseStack poseStack,
+                               MultiBufferSource bufferSource, BlockPos origin) {
+        if (config.getShopAreaPos1() == null || config.getShopAreaPos2() == null) {
+            return;
+        }
+
+        BlockPos pos1 = config.getShopAreaPos1();
+        BlockPos pos2 = config.getShopAreaPos2();
+
+        double minX = Math.min(pos1.getX(), pos2.getX()) - origin.getX();
+        double minY = Math.min(pos1.getY(), pos2.getY()) - origin.getY();
+        double minZ = Math.min(pos1.getZ(), pos2.getZ()) - origin.getZ();
+        double maxX = Math.max(pos1.getX(), pos2.getX()) + 1.0 - origin.getX();
+        double maxY = Math.max(pos1.getY(), pos2.getY()) + 1.0 - origin.getY();
+        double maxZ = Math.max(pos1.getZ(), pos2.getZ()) + 1.0 - origin.getZ();
+
+        VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        LevelRenderer.renderLineBox(poseStack, consumer, minX, minY, minZ, maxX, maxY, maxZ, 1.0F, 0.0F, 0.0F, 1.0F); // Red
+    }
+
+    private void renderTables(ShopConfig config, PoseStack poseStack,
+                             MultiBufferSource bufferSource, BlockPos origin) {
+        VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        for (TableInfo table : config.getTableLocations()) {
+            BlockPos pos = table.getLocation();
+            renderMarker(poseStack, consumer, pos, 1.0F, 0.5F, 0.0F, origin); // Orange
+        }
+    }
+
+    private void renderSeats(ShopConfig config, PoseStack poseStack,
+                            MultiBufferSource bufferSource, BlockPos origin) {
+        VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        for (SeatInfo seat : config.getSeatLocations()) {
+            BlockPos pos = seat.getLocation();
+            renderMarker(poseStack, consumer, pos, 0.0F, 1.0F, 0.0F, origin); // Green
+        }
+    }
+
+    private void renderMarker(PoseStack poseStack, VertexConsumer consumer,
+                            BlockPos pos, float r, float g, float b, BlockPos origin) {
+        double minX = pos.getX() + 0.5 - MARKER_SIZE - origin.getX();
+        double minY = pos.getY() + 0.5 - MARKER_SIZE - origin.getY();
+        double minZ = pos.getZ() + 0.5 - MARKER_SIZE - origin.getZ();
+        double maxX = pos.getX() + 0.5 + MARKER_SIZE - origin.getX();
+        double maxY = pos.getY() + 0.5 + MARKER_SIZE - origin.getY();
+        double maxZ = pos.getZ() + 0.5 + MARKER_SIZE - origin.getZ();
+
+        LevelRenderer.renderLineBox(poseStack, consumer, minX, minY, minZ, maxX, maxY, maxZ, r, g, b, 1.0F);
+    }
+
+    private void renderPath(ShopConfig config, PoseStack poseStack,
+                           MultiBufferSource bufferSource, BlockPos origin) {
+        if (config.getShopPathWaypoints().size() < 2) {
+            return;
+        }
+
+        VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        PoseStack.Pose pose = poseStack.last();
+        Matrix4f matrix = pose.pose();
+
+        BlockPos prev = config.getShopPathWaypoints().get(0);
+        for (int i = 1; i < config.getShopPathWaypoints().size(); i++) {
+            BlockPos current = config.getShopPathWaypoints().get(i);
+
+            Vector3f start = new Vector3f(prev.getX() + 0.5f - origin.getX(), prev.getY() + 0.5f - origin.getY(), prev.getZ() + 0.5f - origin.getZ());
+            Vector3f end = new Vector3f(current.getX() + 0.5f - origin.getX(), current.getY() + 0.5f - origin.getY(), current.getZ() + 0.5f - origin.getZ());
+
+            consumer.addVertex(matrix, start.x(), start.y(), start.z()).setColor(0.0F, 0.0F, 1.0F, 1.0F);
+            consumer.addVertex(matrix, end.x(), end.y(), end.z()).setColor(0.0F, 0.0F, 1.0F, 1.0F);
+
+            prev = current;
+        }
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 16;
+    }
+    
+    @Override
+    public boolean shouldRenderOffScreen(CashierDeskBlockEntity pBlockEntity) {
+        return true;
+    }
+}

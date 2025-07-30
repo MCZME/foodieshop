@@ -1,14 +1,18 @@
 package mczme.foodieshop.screen;
 
+import mczme.foodieshop.api.shop.SeatInfo;
 import mczme.foodieshop.api.shop.ShopConfig;
+import mczme.foodieshop.api.shop.TableInfo;
 import mczme.foodieshop.block.blockentity.CashierDeskBlockEntity;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.joml.Vector2d;
 
 @OnlyIn(Dist.CLIENT)
 public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
@@ -18,6 +22,13 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
 
     private Tabs currentTab = Tabs.GENERAL;
     private Component validationMessage = Component.empty();
+
+    private float zoom = 10.0f;
+    private final Vector2d pan = new Vector2d(0, 0);
+    private SelectedElement selectedElement = null;
+    private Vector2d lastMousePos = null;
+    private boolean panInitialized = false;
+
 
     public ShopConfigScreen(ShopConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -226,22 +237,96 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
 
     private void renderAreaAndLayout(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         ShopConfig config = this.menu.getShopConfig();
+        BlockPos center = this.blockEntity.getBlockPos();
 
-        // 区域
-        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.shop_area"), this.leftPos + 10, this.topPos + 35, 0x404040, false);
-        String pos1 = config.getShopAreaPos1() != null ? config.getShopAreaPos1().toShortString() : "未设置";
-        String pos2 = config.getShopAreaPos2() != null ? config.getShopAreaPos2().toShortString() : "未设置";
-        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.pos1", pos1), this.leftPos + 15, this.topPos + 48, 0x7F7F7F, false);
-        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.pos2", pos2), this.leftPos + 15, this.topPos + 60, 0x7F7F7F, false);
+        int x = this.leftPos + 10;
+        int y = this.topPos + 30;
+        int width = this.imageWidth - 20;
+        int height = this.imageHeight - 60;
 
-        // 座位
-        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.seats", config.getSeatLocations().size()), this.leftPos + 10, this.topPos + 100, 0x404040, false);
+        if (!panInitialized) {
+            pan.set(x + width / 2.0, y + height / 2.0);
+            panInitialized = true;
+        }
 
-        // 桌子
-        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.tables", config.getTableLocations().size()), this.leftPos + 10, this.topPos + 125, 0x404040, false);
+        guiGraphics.enableScissor(x, y, x + width, y + height);
 
-        // 路径点
-        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.waypoints", config.getShopPathWaypoints().size()), this.leftPos + 10, this.topPos + 150, 0x404040, false);
+        renderShopArea(guiGraphics, config, center);
+        renderWaypoints(guiGraphics, config, center);
+        renderTables(guiGraphics, config, center);
+        renderSeats(guiGraphics, config, center);
+
+        guiGraphics.disableScissor();
+    }
+
+    private void renderShopArea(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+        if (config.getShopAreaPos1() != null && config.getShopAreaPos2() != null) {
+            BlockPos pos1 = config.getShopAreaPos1();
+            BlockPos pos2 = config.getShopAreaPos2();
+
+            BlockPos minPos = new BlockPos(Math.min(pos1.getX(), pos2.getX()), Math.min(pos1.getY(), pos2.getY()), Math.min(pos1.getZ(), pos2.getZ()));
+            BlockPos maxPos = new BlockPos(Math.max(pos1.getX(), pos2.getX()), Math.max(pos1.getY(), pos2.getY()), Math.max(pos1.getZ(), pos2.getZ()));
+
+            Vector2d screenMin = worldToScreen(minPos, center);
+            Vector2d screenMax = worldToScreen(maxPos, center);
+
+            float halfZoom = zoom / 2.0f;
+
+            int minX = (int) (screenMin.x - halfZoom);
+            int minY = (int) (screenMin.y - halfZoom);
+            int maxX = (int) (screenMax.x + halfZoom);
+            int maxY = (int) (screenMax.y + halfZoom);
+
+            guiGraphics.fill(minX, minY, maxX, maxY, 0x33FF0000);
+            guiGraphics.renderOutline(minX, minY, maxX - minX, maxY - minY, 0xFFFF0000);
+        }
+    }
+
+    private void renderTables(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+        for (int i = 0; i < config.getTableLocations().size(); i++) {
+            TableInfo table = config.getTableLocations().get(i);
+            Vector2d pos = worldToScreen(table.getLocation(), center);
+            float size = zoom;
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF8B4513); // SaddleBrown
+
+            if (selectedElement != null && selectedElement.type == ElementType.TABLE && selectedElement.index == i) {
+                guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00); // Yellow
+            }
+        }
+    }
+
+    private void renderSeats(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+        for (int i = 0; i < config.getSeatLocations().size(); i++) {
+            SeatInfo seat = config.getSeatLocations().get(i);
+            Vector2d pos = worldToScreen(seat.getLocation(), center);
+            float size = zoom;
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF00FF00); // Lime
+
+            if (selectedElement != null && selectedElement.type == ElementType.SEAT && selectedElement.index == i) {
+                guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00); // Yellow
+            }
+        }
+    }
+
+    private void renderWaypoints(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+        Vector2d lastPos = null;
+        for (int i = 0; i < config.getShopPathWaypoints().size(); i++) {
+            BlockPos waypoint = config.getShopPathWaypoints().get(i);
+            Vector2d currentPos = worldToScreen(waypoint, center);
+
+            if (lastPos != null) {
+                guiGraphics.hLine((int) lastPos.x, (int) currentPos.x, (int) lastPos.y, 0xFF0000FF);
+                guiGraphics.vLine((int) currentPos.x, (int) lastPos.y, (int) currentPos.y, 0xFF0000FF);
+            }
+            lastPos = currentPos;
+
+            float size = zoom * 0.6f; // Waypoints are slightly smaller
+            guiGraphics.fill((int) (currentPos.x - size / 2), (int) (currentPos.y - size / 2), (int) (currentPos.x + size / 2), (int) (currentPos.y + size / 2), 0xFF0000FF); // Blue
+
+            if (selectedElement != null && selectedElement.type == ElementType.WAYPOINT && selectedElement.index == i) {
+                guiGraphics.renderOutline((int) (currentPos.x - size / 2 - 1), (int) (currentPos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00); // Yellow
+            }
+        }
     }
 
     private void initSaveAndValidateWidgets() {
@@ -264,6 +349,84 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         guiGraphics.drawString(this.font, "日志将显示在这里。", this.leftPos + 15, this.topPos + 113, 0x7F7F7F, false);
     }
 
+    private Vector2d worldToScreen(BlockPos pos, BlockPos center) {
+        double screenX = (pos.getX() - center.getX()) * zoom + pan.x;
+        double screenY = (pos.getZ() - center.getZ()) * zoom + pan.y;
+        return new Vector2d(screenX, screenY);
+    }
+
+    private BlockPos screenToWorld(double mouseX, double mouseY, BlockPos center) {
+        int worldX = (int) Math.round(((mouseX - pan.x) / zoom) + center.getX());
+        int worldZ = (int) Math.round(((mouseY - pan.y) / zoom) + center.getZ());
+        return new BlockPos(worldX, center.getY(), worldZ);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (this.currentTab == Tabs.LAYOUT) {
+            lastMousePos = new Vector2d(mouseX, mouseY);
+            ShopConfig config = this.menu.getShopConfig();
+            BlockPos center = this.blockEntity.getBlockPos();
+            selectedElement = null;
+
+            // Check seats
+            for (int i = 0; i < config.getSeatLocations().size(); i++) {
+                Vector2d pos = worldToScreen(config.getSeatLocations().get(i).getLocation(), center);
+                if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
+                    selectedElement = new SelectedElement(ElementType.SEAT, i);
+                    return true;
+                }
+            }
+
+            // Check tables
+            for (int i = 0; i < config.getTableLocations().size(); i++) {
+                Vector2d pos = worldToScreen(config.getTableLocations().get(i).getLocation(), center);
+                if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
+                    selectedElement = new SelectedElement(ElementType.TABLE, i);
+                    return true;
+                }
+            }
+
+            // Check waypoints
+            for (int i = 0; i < config.getShopPathWaypoints().size(); i++) {
+                Vector2d pos = worldToScreen(config.getShopPathWaypoints().get(i), center);
+                if (Math.abs(pos.x - mouseX) < zoom * 0.3f && Math.abs(pos.y - mouseY) < zoom * 0.3f) {
+                    selectedElement = new SelectedElement(ElementType.WAYPOINT, i);
+                    return true;
+                }
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        lastMousePos = null;
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (this.currentTab == Tabs.LAYOUT && lastMousePos != null) {
+            pan.add(new Vector2d(mouseX, mouseY).sub(lastMousePos));
+            lastMousePos.set(mouseX, mouseY);
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (this.currentTab == Tabs.LAYOUT) {
+            float zoomFactor = (float) Math.pow(1.1, scrollY);
+            zoom *= zoomFactor;
+            // Clamp zoom level
+            zoom = Math.max(1.0f, Math.min(zoom, 50.0f));
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
     @Override
     public boolean isPauseScreen() {
         return false;
@@ -273,5 +436,14 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         GENERAL,
         LAYOUT,
         SAVE
+    }
+
+    private enum ElementType {
+        SEAT,
+        TABLE,
+        WAYPOINT
+    }
+
+    private record SelectedElement(ElementType type, int index) {
     }
 }
