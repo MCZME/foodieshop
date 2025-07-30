@@ -89,7 +89,15 @@ public class DinerBlueprintPenItem extends Item {
                         if (willSetPos1) {
                             player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.set_area_pos1", pos.getX(), pos.getY(), pos.getZ()));
                         } else {
-                            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.set_area_pos2", pos.getX(), pos.getY(), pos.getZ()));
+                            // 设置完第二个点后，立即检查收银台是否在区域内
+                            if (cashierDesk.isShopAreaSet()) {
+                                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.set_area_pos2", pos.getX(), pos.getY(), pos.getZ()));
+                            } else {
+                                // 如果不在，说明区域无效，重置第二个点
+                                cashierDesk.getShopConfig().setShopAreaPos2(null);
+                                cashierDesk.setChanged();
+                                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.area_invalid_cashier_not_in"));
+                            }
                         }
                         break;
                     case SEAT:

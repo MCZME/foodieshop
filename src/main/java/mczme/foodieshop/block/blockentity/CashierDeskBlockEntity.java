@@ -72,11 +72,14 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
     }
 
     public boolean isShopAreaSet() {
-        return this.shopConfig.getShopAreaPos1() != null && this.shopConfig.getShopAreaPos2() != null;
+        if (this.shopConfig.getShopAreaPos1() == null || this.shopConfig.getShopAreaPos2() == null) {
+            return false;
+        }
+        return isPosInShopArea(this.getBlockPos());
     }
 
     public boolean isPosInShopArea(BlockPos pos) {
-        if (!isShopAreaSet()) {
+        if (this.shopConfig.getShopAreaPos1() == null || this.shopConfig.getShopAreaPos2() == null) {
             return false;
         }
         BlockPos p1 = this.shopConfig.getShopAreaPos1();

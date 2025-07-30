@@ -48,6 +48,7 @@ public class ZH_CN extends LanguageProvider {
         add("message.foodieshop.diner_blueprint_pen.path_edge_removed", "路径连接已移除: 从 [%d, %d, %d] 到 [%d, %d, %d]");
         add("message.foodieshop.shop_area_not_set", "请先设置店铺范围！");
         add("message.foodieshop.pos_not_in_area", "操作位置不在店铺范围内！");
+        add("message.foodieshop.diner_blueprint_pen.area_invalid_cashier_not_in", "区域设置无效: 收银台必须在店铺区域内。位置2已重置。");
 
         // GUI
         add("gui.foodieshop.shop_config.tab.general", "基础设置");

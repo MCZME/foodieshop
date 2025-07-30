@@ -30,6 +30,7 @@
   "itemGroup.foodieshop.foodieshop": "食客店铺",
   "message.foodieshop.diner_blueprint_pen.add_seat": "添加座位: %d, %d, %d",
   "message.foodieshop.diner_blueprint_pen.add_table": "添加桌子: %d, %d, %d",
+  "message.foodieshop.diner_blueprint_pen.area_invalid_cashier_not_in": "区域设置无效: 收银台必须在店铺区域内。位置2已重置。",
   "message.foodieshop.diner_blueprint_pen.bind_success": "成功绑定店铺位置: %d, %d, %d",
   "message.foodieshop.diner_blueprint_pen.path_connection_cancelled": "路径连接已取消",
   "message.foodieshop.diner_blueprint_pen.path_connection_start": "已选择路径连接起点: %d, %d, %d. 请点击另一节点以连接, 或再次点击以删除该节点.",
