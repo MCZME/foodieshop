@@ -1,8 +1,8 @@
 package mczme.foodieshop.api.shop;
 
 import net.minecraft.core.BlockPos;
-import com.mojang.serialization.DataResult;
 import net.minecraft.nbt.*;
+import mczme.foodieshop.util.PathGraph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +17,9 @@ public class ShopConfig {
     private BlockPos shopAreaPos2;
     private List<SeatInfo> seatLocations;
     private List<TableInfo> tableLocations;
-    private List<BlockPos> shopPathWaypoints;
+    private PathGraph pathGraph;
 
-    public ShopConfig(String shopId, String shopOwnerUUID, BlockPos cashierDeskLocation, BlockPos menuContainerPos, BlockPos cashBoxPos, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, List<BlockPos> shopPathWaypoints) {
+    public ShopConfig(String shopId, String shopOwnerUUID, BlockPos cashierDeskLocation, BlockPos menuContainerPos, BlockPos cashBoxPos, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, PathGraph pathGraph) {
         this.shopId = shopId;
         this.shopOwnerUUID = shopOwnerUUID;
         this.cashierDeskLocation = cashierDeskLocation;
@@ -29,7 +29,7 @@ public class ShopConfig {
         this.shopAreaPos2 = shopAreaPos2;
         this.seatLocations = seatLocations;
         this.tableLocations = tableLocations;
-        this.shopPathWaypoints = shopPathWaypoints;
+        this.pathGraph = pathGraph != null ? pathGraph : new PathGraph();
     }
 
     public CompoundTag toNbt() {
@@ -62,13 +62,9 @@ public class ShopConfig {
         }
         tag.put("tableLocations", tableList);
 
-        ListTag waypointList = new ListTag();
-        for (BlockPos waypoint : this.shopPathWaypoints) {
-            DataResult<Tag> result = BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, waypoint);
-            result.result().ifPresent(waypointList::add);
+        if (this.pathGraph != null) {
+            tag.put("pathGraph", this.pathGraph.toNbt());
         }
-        tag.put("shopPathWaypoints", waypointList);
-
         return tag;
     }
 
@@ -93,14 +89,9 @@ public class ShopConfig {
             tableLocations.add(TableInfo.fromNbt(tableList.getCompound(i)));
         }
 
-        List<BlockPos> shopPathWaypoints = new ArrayList<>();
-        ListTag waypointList = tag.getList("shopPathWaypoints", Tag.TAG_COMPOUND);
-        for (Tag t : waypointList) {
-            DataResult<BlockPos> result = BlockPos.CODEC.parse(NbtOps.INSTANCE, t);
-            result.result().ifPresent(shopPathWaypoints::add);
-        }
+        PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
-        return new ShopConfig(shopId, shopOwnerUUID, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, shopPathWaypoints);
+        return new ShopConfig(shopId, shopOwnerUUID, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
     }
 
     public String getShopId() {
@@ -175,11 +166,11 @@ public class ShopConfig {
         this.tableLocations = tableLocations;
     }
 
-    public List<BlockPos> getShopPathWaypoints() {
-        return shopPathWaypoints;
+    public PathGraph getPathGraph() {
+        return pathGraph;
     }
 
-    public void setShopPathWaypoints(List<BlockPos> shopPathWaypoints) {
-        this.shopPathWaypoints = shopPathWaypoints;
+    public void setPathGraph(PathGraph pathGraph) {
+        this.pathGraph = pathGraph;
     }
 }

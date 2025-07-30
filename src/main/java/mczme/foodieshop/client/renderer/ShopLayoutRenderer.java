@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 
 public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockEntity> {
     private static final float MARKER_SIZE = 0.2f;
@@ -75,7 +74,7 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
         double maxZ = Math.max(pos1.getZ(), pos2.getZ()) + 1.0 - origin.getZ();
 
         VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
-        LevelRenderer.renderLineBox(poseStack, consumer, minX, minY, minZ, maxX, maxY, maxZ, 1.0F, 0.0F, 0.0F, 1.0F); // Red
+        LevelRenderer.renderLineBox(poseStack, consumer, minX, minY, minZ, maxX, maxY, maxZ, 1.0F, 0.0F, 0.0F, 1.0F); // 红色
     }
 
     private void renderTables(ShopConfig config, PoseStack poseStack,
@@ -83,7 +82,7 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
         VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
         for (TableInfo table : config.getTableLocations()) {
             BlockPos pos = table.getLocation();
-            renderMarker(poseStack, consumer, pos, 1.0F, 0.5F, 0.0F, origin); // Orange
+            renderMarker(poseStack, consumer, pos, 1.0F, 0.5F, 0.0F, origin); // 橙色
         }
     }
 
@@ -92,7 +91,7 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
         VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
         for (SeatInfo seat : config.getSeatLocations()) {
             BlockPos pos = seat.getLocation();
-            renderMarker(poseStack, consumer, pos, 0.0F, 1.0F, 0.0F, origin); // Green
+            renderMarker(poseStack, consumer, pos, 0.0F, 1.0F, 0.0F, origin); // 绿色
         }
     }
 
@@ -108,27 +107,67 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
         LevelRenderer.renderLineBox(poseStack, consumer, minX, minY, minZ, maxX, maxY, maxZ, r, g, b, 1.0F);
     }
 
+    private void renderPathNodeMarker(PoseStack poseStack, VertexConsumer consumer,
+                                      BlockPos pos, float r, float g, float b, BlockPos origin) {
+        double yCenter = pos.getY() + 1.01f + MARKER_SIZE - origin.getY();
+        double xCenter = pos.getX() + 0.5 - origin.getX();
+        double zCenter = pos.getZ() + 0.5 - origin.getZ();
+
+        double minX = xCenter - MARKER_SIZE;
+        double minY = yCenter - MARKER_SIZE;
+        double minZ = zCenter - MARKER_SIZE;
+        double maxX = xCenter + MARKER_SIZE;
+        double maxY = yCenter + MARKER_SIZE;
+        double maxZ = zCenter + MARKER_SIZE;
+
+        LevelRenderer.renderLineBox(poseStack, consumer, minX, minY, minZ, maxX, maxY, maxZ, r, g, b, 1.0F);
+    }
+
     private void renderPath(ShopConfig config, PoseStack poseStack,
                            MultiBufferSource bufferSource, BlockPos origin) {
-        if (config.getShopPathWaypoints().size() < 2) {
+        if (config.getPathGraph() == null) {
             return;
         }
 
-        VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        VertexConsumer quadConsumer = bufferSource.getBuffer(CustomRenderTypes.SOLID_NO_DEPTH);
         PoseStack.Pose pose = poseStack.last();
         Matrix4f matrix = pose.pose();
 
-        BlockPos prev = config.getShopPathWaypoints().get(0);
-        for (int i = 1; i < config.getShopPathWaypoints().size(); i++) {
-            BlockPos current = config.getShopPathWaypoints().get(i);
+        // 将边渲染为实心四边形
+        for (java.util.List<BlockPos> edge : config.getPathGraph().getEdges()) {
+            if (edge.size() == 2) {
+                BlockPos pos1 = edge.get(0);
+                BlockPos pos2 = edge.get(1);
 
-            Vector3f start = new Vector3f(prev.getX() + 0.5f - origin.getX(), prev.getY() + 0.5f - origin.getY(), prev.getZ() + 0.5f - origin.getZ());
-            Vector3f end = new Vector3f(current.getX() + 0.5f - origin.getX(), current.getY() + 0.5f - origin.getY(), current.getZ() + 0.5f - origin.getZ());
+                // 路径总是直的，所以X或Z坐标总有一个是相同的。
+                float y = pos1.getY() - origin.getY() + 1.01f; // 略高于方块顶面
 
-            consumer.addVertex(matrix, start.x(), start.y(), start.z()).setColor(0.0F, 0.0F, 1.0F, 1.0F);
-            consumer.addVertex(matrix, end.x(), end.y(), end.z()).setColor(0.0F, 0.0F, 1.0F, 1.0F);
+                float minX, maxX, minZ, maxZ;
 
-            prev = current;
+                if (pos1.getX() == pos2.getX()) { // 沿Z轴的路径
+                    minX = pos1.getX() - origin.getX();
+                    maxX = pos1.getX() - origin.getX() + 1.0f;
+                    minZ = Math.min(pos1.getZ(), pos2.getZ()) - origin.getZ();
+                    maxZ = Math.max(pos1.getZ(), pos2.getZ()) - origin.getZ() + 1.0f;
+                } else { // 沿X轴的路径
+                    minX = Math.min(pos1.getX(), pos2.getX()) - origin.getX();
+                    maxX = Math.max(pos1.getX(), pos2.getX()) - origin.getX() + 1.0f;
+                    minZ = pos1.getZ() - origin.getZ();
+                    maxZ = pos1.getZ() - origin.getZ() + 1.0f;
+                }
+
+                // 定义方块顶部四边形的4个角
+                quadConsumer.addVertex(matrix, minX, y, minZ).setColor(0.0F, 0.0F, 1.0F, 0.5F); // 蓝色，半透明
+                quadConsumer.addVertex(matrix, minX, y, maxZ).setColor(0.0F, 0.0F, 1.0F, 0.5F);
+                quadConsumer.addVertex(matrix, maxX, y, maxZ).setColor(0.0F, 0.0F, 1.0F, 0.5F);
+                quadConsumer.addVertex(matrix, maxX, y, minZ).setColor(0.0F, 0.0F, 1.0F, 0.5F);
+            }
+        }
+
+        VertexConsumer lineConsumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        // 渲染节点
+        for (BlockPos node : config.getPathGraph().getNodes()) {
+            renderPathNodeMarker(poseStack, lineConsumer, node, 0.0F, 0.0F, 1.0F, origin); // 蓝色
         }
     }
 

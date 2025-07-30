@@ -18,7 +18,7 @@ public class CustomRenderTypes extends RenderType {
      * 这使得它们能够渲染在所有其他几何体的最上层。
      */
     public static final RenderType LINES_NO_DEPTH = create("foodieshop_lines_no_depth",
-            DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES, 256, false, false,
+            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.LINES, 256, false, false,
             CompositeState.builder()
                     .setShaderState(RENDERTYPE_LINES_SHADER)
                     .setLineState(new LineStateShard(OptionalDouble.of(2.0))) // 使线条更粗一些以便观察
@@ -27,6 +27,18 @@ public class CustomRenderTypes extends RenderType {
                     .setOutputState(ITEM_ENTITY_TARGET)
                     .setWriteMaskState(COLOR_WRITE)
                     .setDepthTestState(NO_DEPTH_TEST)
+                    .setCullState(NO_CULL)
+                    .createCompositeState(false));
+    
+    public static final RenderType SOLID_NO_DEPTH = create("foodieshop_solid_no_depth",
+            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
+            CompositeState.builder()
+                    .setShaderState(POSITION_COLOR_SHADER)
+                    .setLayeringState(VIEW_OFFSET_Z_LAYERING)
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setOutputState(ITEM_ENTITY_TARGET)
+                    .setWriteMaskState(COLOR_WRITE)
+                    .setDepthTestState(LEQUAL_DEPTH_TEST)
                     .setCullState(NO_CULL)
                     .createCompositeState(false));
 }

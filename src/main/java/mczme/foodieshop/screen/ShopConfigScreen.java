@@ -309,17 +309,22 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     }
 
     private void renderWaypoints(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
-        Vector2d lastPos = null;
-        for (int i = 0; i < config.getShopPathWaypoints().size(); i++) {
-            BlockPos waypoint = config.getShopPathWaypoints().get(i);
-            Vector2d currentPos = worldToScreen(waypoint, center);
+        if (config.getPathGraph() == null) return;
 
-            if (lastPos != null) {
-                guiGraphics.hLine((int) lastPos.x, (int) currentPos.x, (int) lastPos.y, 0xFF0000FF);
-                guiGraphics.vLine((int) currentPos.x, (int) lastPos.y, (int) currentPos.y, 0xFF0000FF);
+        // Render edges
+        for (java.util.List<BlockPos> edge : config.getPathGraph().getEdges()) {
+            if (edge.size() == 2) {
+                Vector2d pos1 = worldToScreen(edge.get(0), center);
+                Vector2d pos2 = worldToScreen(edge.get(1), center);
+                guiGraphics.hLine((int) pos1.x, (int) pos2.x, (int) pos1.y, 0xFF0000FF);
+                guiGraphics.vLine((int) pos2.x, (int) pos1.y, (int) pos2.y, 0xFF0000FF);
             }
-            lastPos = currentPos;
+        }
 
+        // Render nodes
+        for (int i = 0; i < config.getPathGraph().getNodes().size(); i++) {
+            BlockPos waypoint = config.getPathGraph().getNodes().get(i);
+            Vector2d currentPos = worldToScreen(waypoint, center);
             float size = zoom * 0.6f; // Waypoints are slightly smaller
             guiGraphics.fill((int) (currentPos.x - size / 2), (int) (currentPos.y - size / 2), (int) (currentPos.x + size / 2), (int) (currentPos.y + size / 2), 0xFF0000FF); // Blue
 
@@ -388,11 +393,13 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             }
 
             // Check waypoints
-            for (int i = 0; i < config.getShopPathWaypoints().size(); i++) {
-                Vector2d pos = worldToScreen(config.getShopPathWaypoints().get(i), center);
-                if (Math.abs(pos.x - mouseX) < zoom * 0.3f && Math.abs(pos.y - mouseY) < zoom * 0.3f) {
-                    selectedElement = new SelectedElement(ElementType.WAYPOINT, i);
-                    return true;
+            if (config.getPathGraph() != null) {
+                for (int i = 0; i < config.getPathGraph().getNodes().size(); i++) {
+                    Vector2d pos = worldToScreen(config.getPathGraph().getNodes().get(i), center);
+                    if (Math.abs(pos.x - mouseX) < zoom * 0.3f && Math.abs(pos.y - mouseY) < zoom * 0.3f) {
+                        selectedElement = new SelectedElement(ElementType.WAYPOINT, i);
+                        return true;
+                    }
                 }
             }
         }

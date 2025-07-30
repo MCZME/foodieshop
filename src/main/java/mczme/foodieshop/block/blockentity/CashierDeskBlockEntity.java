@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +41,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 null,
                 new ArrayList<>(),
                 new ArrayList<>(),
-                new ArrayList<>()
+                null
         );
     }
 
@@ -70,7 +71,32 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         setChanged();
     }
 
-    public boolean toggleSeat(BlockPos pos) {
+    public boolean isShopAreaSet() {
+        return this.shopConfig.getShopAreaPos1() != null && this.shopConfig.getShopAreaPos2() != null;
+    }
+
+    public boolean isPosInShopArea(BlockPos pos) {
+        if (!isShopAreaSet()) {
+            return false;
+        }
+        BlockPos p1 = this.shopConfig.getShopAreaPos1();
+        BlockPos p2 = this.shopConfig.getShopAreaPos2();
+        AABB area = new AABB(
+                Math.min(p1.getX(), p2.getX()),
+                Math.min(p1.getY(), p2.getY()),
+                Math.min(p1.getZ(), p2.getZ()),
+                Math.max(p1.getX(), p2.getX()) + 1.0,
+                Math.max(p1.getY(), p2.getY()) + 1.0,
+                Math.max(p1.getZ(), p2.getZ()) + 1.0
+        );
+        return area.contains(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public boolean toggleSeat(BlockPos pos, Player player) {
+        if (!isPosInShopArea(pos)) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
+            return false;
+        }
         // 如果座位存在，则查找并移除
         boolean removed = this.shopConfig.getSeatLocations().removeIf(seatInfo -> seatInfo.getLocation().equals(pos));
 
@@ -82,7 +108,11 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         return !removed; // 如果添加则返回true，如果移除则返回false
     }
 
-    public boolean toggleTable(BlockPos pos) {
+    public boolean toggleTable(BlockPos pos, Player player) {
+        if (!isPosInShopArea(pos)) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
+            return false;
+        }
         // 如果桌子存在，则查找并移除
         boolean removed = this.shopConfig.getTableLocations().removeIf(tableInfo -> tableInfo.getLocation().equals(pos));
 
@@ -92,16 +122,6 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         }
         setChanged();
         return !removed; // 如果添加则返回true，如果移除则返回false
-    }
-
-    public void addPathWaypoint(BlockPos pos) {
-        // 防止连续添加完全相同的方块
-        if (!this.shopConfig.getShopPathWaypoints().isEmpty() &&
-                this.shopConfig.getShopPathWaypoints().getLast().equals(pos)) {
-            return;
-        }
-        this.shopConfig.getShopPathWaypoints().add(pos);
-        setChanged();
     }
 
     public void clearAllData() {
@@ -115,7 +135,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 null,
                 new ArrayList<>(),
                 new ArrayList<>(),
-                new ArrayList<>()
+                null
         );
         setChanged();
     }

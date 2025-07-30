@@ -38,9 +38,16 @@ public class ZH_CN extends LanguageProvider {
         add("setup_mode.foodieshop.path", "路径");
         add("message.foodieshop.diner_blueprint_pen.add_seat", "添加座位: %d, %d, %d");
         add("message.foodieshop.diner_blueprint_pen.add_table", "添加桌子: %d, %d, %d");
-        add("message.foodieshop.diner_blueprint_pen.add_path", "添加路径点 : %d, %d, %d, %s");
         add("message.foodieshop.diner_blueprint_pen.remove_seat", "移除座位: %d, %d, %d");
         add("message.foodieshop.diner_blueprint_pen.remove_table", "移除桌子: %d, %d, %d");
+        add("message.foodieshop.diner_blueprint_pen.path_node_added", "路径节点已添加: %d, %d, %d");
+        add("message.foodieshop.diner_blueprint_pen.path_node_removed", "路径节点已移除: %d, %d, %d");
+        add("message.foodieshop.diner_blueprint_pen.path_connection_start", "已选择路径连接起点: %d, %d, %d. 请点击另一节点以连接, 或再次点击以删除该节点.");
+        add("message.foodieshop.diner_blueprint_pen.path_connection_cancelled", "路径连接已取消");
+        add("message.foodieshop.diner_blueprint_pen.path_edge_created", "路径连接已创建: 从 [%d, %d, %d] 到 [%d, %d, %d]");
+        add("message.foodieshop.diner_blueprint_pen.path_edge_removed", "路径连接已移除: 从 [%d, %d, %d] 到 [%d, %d, %d]");
+        add("message.foodieshop.shop_area_not_set", "请先设置店铺范围！");
+        add("message.foodieshop.pos_not_in_area", "操作位置不在店铺范围内！");
 
         // GUI
         add("gui.foodieshop.shop_config.tab.general", "基础设置");
