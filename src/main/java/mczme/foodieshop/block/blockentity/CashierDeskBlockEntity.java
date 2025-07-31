@@ -1,6 +1,8 @@
 package mczme.foodieshop.block.blockentity;
 
+import mczme.foodieshop.api.shop.SeatInfo;
 import mczme.foodieshop.api.shop.ShopConfig;
+import mczme.foodieshop.api.shop.TableInfo;
 import mczme.foodieshop.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import mczme.foodieshop.screen.ShopConfigMenu;
@@ -22,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider {
@@ -71,6 +75,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         setChanged();
     }
 
+    // 检查商店区域是否已设置
     public boolean isShopAreaSet() {
         if (this.shopConfig.getShopAreaPos1() == null || this.shopConfig.getShopAreaPos2() == null) {
             return false;
@@ -78,6 +83,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         return isPosInShopArea(this.getBlockPos());
     }
 
+    // 检查给定的位置是否在商店区域内
     public boolean isPosInShopArea(BlockPos pos) {
         if (this.shopConfig.getShopAreaPos1() == null || this.shopConfig.getShopAreaPos2() == null) {
             return false;
@@ -95,36 +101,134 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         return area.contains(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public boolean toggleSeat(BlockPos pos, Player player) {
-        if (!isPosInShopArea(pos)) {
-            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
-            return false;
-        }
-        // 如果座位存在，则查找并移除
-        boolean removed = this.shopConfig.getSeatLocations().removeIf(seatInfo -> seatInfo.getLocation().equals(pos));
-
-        // 如果没有被移除，则添加一个新的
-        if (!removed) {
-            this.shopConfig.getSeatLocations().add(new mczme.foodieshop.api.shop.SeatInfo(pos, true));
-        }
-        setChanged();
-        return !removed; // 如果添加则返回true，如果移除则返回false
+    public Optional<TableInfo> getTableAt(BlockPos pos) {
+        return this.shopConfig.getTableLocations().stream()
+                .filter(tableInfo -> tableInfo.getLocations().contains(pos))
+                .findFirst();
     }
 
-    public boolean toggleTable(BlockPos pos, Player player) {
+    public Optional<SeatInfo> getSeatAt(BlockPos pos) {
+        return this.shopConfig.getSeatLocations().stream()
+                .filter(seatInfo -> seatInfo.getLocation().equals(pos))
+                .findFirst();
+    }
+
+    public boolean addSeat(BlockPos pos, Player player) {
         if (!isPosInShopArea(pos)) {
             player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
             return false;
         }
-        // 如果桌子存在，则查找并移除
-        boolean removed = this.shopConfig.getTableLocations().removeIf(tableInfo -> tableInfo.getLocation().equals(pos));
-
-        // 如果没有被移除，则添加一个新的
-        if (!removed) {
-            this.shopConfig.getTableLocations().add(new mczme.foodieshop.api.shop.TableInfo(pos, true));
+        if (getTableAt(pos).isPresent() || getSeatAt(pos).isPresent()) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_already_occupied"));
+            return false;
         }
+        this.shopConfig.getSeatLocations().add(new SeatInfo(pos));
         setChanged();
-        return !removed; // 如果添加则返回true，如果移除则返回false
+        return true;
+    }
+
+    public boolean removeSeat(BlockPos pos) {
+        Optional<SeatInfo> seatOpt = getSeatAt(pos);
+        if (seatOpt.isPresent()) {
+            SeatInfo seat = seatOpt.get();
+            // 如果座位已绑定，则从桌子解绑
+            if (seat.getBoundTableId() != null) {
+                this.shopConfig.getTableLocations().stream()
+                        .filter(table -> table.getTableId().equals(seat.getBoundTableId()))
+                        .findFirst()
+                        .ifPresent(table -> table.unbindSeatByLocation(pos));
+            }
+            // 移除座位
+            boolean removed = this.shopConfig.getSeatLocations().remove(seat);
+            if (removed) {
+                setChanged();
+            }
+            return removed;
+        }
+        return false;
+    }
+
+    public boolean addTable(BlockPos pos, Player player) {
+        if (!isPosInShopArea(pos)) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
+            return false;
+        }
+        if (getTableAt(pos).isPresent() || getSeatAt(pos).isPresent()) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_already_occupied"));
+            return false;
+        }
+        this.shopConfig.getTableLocations().add(new TableInfo(new ArrayList<>(List.of(pos))));
+        setChanged();
+        return true;
+    }
+
+    public boolean removeTable(BlockPos pos) {
+        boolean removed = this.shopConfig.getTableLocations().removeIf(tableInfo -> tableInfo.getLocations().contains(pos));
+        if (removed) {
+            setChanged();
+        }
+        return removed;
+    }
+
+    public boolean bindSeatToTable(BlockPos seatPos, BlockPos tablePos, Player player) {
+        Optional<SeatInfo> seatOpt = getSeatAt(seatPos);
+        Optional<TableInfo> tableOpt = getTableAt(tablePos);
+
+        if (seatOpt.isPresent() && tableOpt.isPresent()) {
+            SeatInfo seat = seatOpt.get();
+            TableInfo newTable = tableOpt.get();
+
+            if (newTable.isAdjacent(seatPos)) {
+                // 如果座位已绑定到其他桌子，先从旧桌子解绑
+                if (seat.getBoundTableId() != null && !seat.getBoundTableId().equals(newTable.getTableId())) {
+                    this.shopConfig.getTableLocations().stream()
+                            .filter(oldTable -> oldTable.getTableId().equals(seat.getBoundTableId()))
+                            .findFirst()
+                            .ifPresent(oldTable -> oldTable.unbindSeatByLocation(seatPos));
+                }
+
+                // 绑定到新桌子
+                seat.bindToTable(newTable.getTableId());
+                newTable.bindSeat(seat); // 也在桌子端记录绑定
+                setChanged();
+                return true;
+            } else {
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.seat_not_adjacent_to_table"));
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public boolean combineTables(BlockPos pos1, BlockPos pos2, Player player) {
+        Optional<TableInfo> table1Opt = getTableAt(pos1);
+        Optional<TableInfo> table2Opt = getTableAt(pos2);
+
+        if (table1Opt.isPresent() && table2Opt.isPresent() && !table1Opt.get().equals(table2Opt.get())) {
+            TableInfo table1 = table1Opt.get();
+            TableInfo table2 = table2Opt.get();
+
+            // 检查两个桌子是否相邻
+            boolean areAdjacent = table2.getLocations().stream().anyMatch(table1::isAdjacent);
+
+            if (areAdjacent) {
+                // 合并 table2 到 table1
+                table1.getLocations().addAll(table2.getLocations());
+                // 将 table2 的所有已绑定座位重新绑定到 table1
+                for (SeatInfo seat : table2.getBoundSeats()) {
+                    seat.bindToTable(table1.getTableId());
+                    table1.bindSeat(seat);
+                }
+                // 移除 table2
+                this.shopConfig.getTableLocations().remove(table2);
+                setChanged();
+                return true;
+            } else {
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.tables_not_adjacent"));
+                return false;
+            }
+        }
+        return false;
     }
 
     public void clearAllData() {

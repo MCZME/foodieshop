@@ -50,6 +50,16 @@ public class ZH_CN extends LanguageProvider {
         add("message.foodieshop.shop_area_not_set", "请先设置店铺范围！");
         add("message.foodieshop.pos_not_in_area", "操作位置不在店铺范围内！");
         add("message.foodieshop.diner_blueprint_pen.area_invalid_cashier_not_in", "区域设置无效: 收银台必须在店铺区域内。位置2已重置。");
+        add("message.foodieshop.table_exists_at_pos", "该位置已存在桌子！");
+        add("message.foodieshop.seat_exists_at_pos", "该位置已存在座位！");
+        add("message.foodieshop.pos_already_occupied", "该位置已被占用！");
+        add("message.foodieshop.diner_blueprint_pen.seat_bound_to_table", "已将座位 [%d, %d, %d] 绑定到桌子 [%d, %d, %d]");
+        add("message.foodieshop.diner_blueprint_pen.tables_combined", "已将桌子 [%d, %d, %d] 与桌子 [%d, %d, %d] 合并");
+        add("message.foodieshop.diner_blueprint_pen.selected", "已选中方块: %d, %d, %d");
+        add("message.foodieshop.diner_blueprint_pen.selection_cancelled", "选择已取消");
+        add("message.foodieshop.diner_blueprint_pen.wrong_type_for_selection", "无法在当前模式下选择此类型的方块");
+        add("message.foodieshop.diner_blueprint_pen.seat_not_adjacent_to_table", "绑定失败：座位必须与桌子相邻");
+        add("message.foodieshop.diner_blueprint_pen.tables_not_adjacent", "组合失败：桌子必须相邻");
 
         // GUI
         add("gui.foodieshop.shop_config.tab.general", "基础设置");

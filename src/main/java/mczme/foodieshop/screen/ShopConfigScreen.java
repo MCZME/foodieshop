@@ -4,6 +4,7 @@ import mczme.foodieshop.api.shop.SeatInfo;
 import mczme.foodieshop.api.shop.ShopConfig;
 import mczme.foodieshop.api.shop.TableInfo;
 import mczme.foodieshop.block.blockentity.CashierDeskBlockEntity;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.BlockPos;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -122,12 +123,18 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     }
 
     @Override
-    protected void renderBg(net.minecraft.client.gui.GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX,
+            int mouseY) {
         guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+    }
+    
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        
     }
 
     @Override
-    public void render(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
@@ -176,7 +183,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 .build());
     }
 
-    private void renderGeneralSettings(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    private void renderGeneralSettings(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.owner_uuid"), this.leftPos + 10, this.topPos + 35, 0x404040, false);
         String ownerUUID = this.blockEntity.getOwnerUUID() != null ? this.blockEntity.getOwnerUUID().toString() : "Not set";
         guiGraphics.drawString(this.font, ownerUUID, this.leftPos + 15, this.topPos + 45, 0x7F7F7F, false);
@@ -235,7 +242,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 .build());
     }
 
-    private void renderAreaAndLayout(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    private void renderAreaAndLayout(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         ShopConfig config = this.menu.getShopConfig();
         BlockPos center = this.blockEntity.getBlockPos();
 
@@ -259,7 +266,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         guiGraphics.disableScissor();
     }
 
-    private void renderShopArea(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+    private void renderShopArea(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
         if (config.getShopAreaPos1() != null && config.getShopAreaPos2() != null) {
             BlockPos pos1 = config.getShopAreaPos1();
             BlockPos pos2 = config.getShopAreaPos2();
@@ -282,20 +289,22 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         }
     }
 
-    private void renderTables(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+    private void renderTables(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
         for (int i = 0; i < config.getTableLocations().size(); i++) {
             TableInfo table = config.getTableLocations().get(i);
-            Vector2d pos = worldToScreen(table.getLocation(), center);
-            float size = zoom;
-            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF8B4513); // SaddleBrown
+            for (BlockPos tablePos : table.getLocations()) {
+                Vector2d pos = worldToScreen(tablePos, center);
+                float size = zoom;
+                guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF8B4513); // SaddleBrown
 
-            if (selectedElement != null && selectedElement.type == ElementType.TABLE && selectedElement.index == i) {
-                guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00); // Yellow
+                if (selectedElement != null && selectedElement.type == ElementType.TABLE && selectedElement.index == i) {
+                    guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00); // Yellow
+                }
             }
         }
     }
 
-    private void renderSeats(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+    private void renderSeats(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
         for (int i = 0; i < config.getSeatLocations().size(); i++) {
             SeatInfo seat = config.getSeatLocations().get(i);
             Vector2d pos = worldToScreen(seat.getLocation(), center);
@@ -308,7 +317,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         }
     }
 
-    private void renderWaypoints(net.minecraft.client.gui.GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+    private void renderWaypoints(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
         if (config.getPathGraph() == null) return;
 
         // Render edges
@@ -345,7 +354,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 .build());
     }
 
-    private void renderSaveAndValidate(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    private void renderSaveAndValidate(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.validation_results"), this.leftPos + 10, this.topPos + 65, 0x404040, false);
         guiGraphics.drawString(this.font, this.validationMessage, this.leftPos + 15, this.topPos + 78, 0x7F7F7F, false);
 
@@ -385,10 +394,12 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
 
             // Check tables
             for (int i = 0; i < config.getTableLocations().size(); i++) {
-                Vector2d pos = worldToScreen(config.getTableLocations().get(i).getLocation(), center);
-                if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
-                    selectedElement = new SelectedElement(ElementType.TABLE, i);
-                    return true;
+                for (BlockPos tablePos : config.getTableLocations().get(i).getLocations()) {
+                    Vector2d pos = worldToScreen(tablePos, center);
+                    if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
+                        selectedElement = new SelectedElement(ElementType.TABLE, i);
+                        return true;
+                    }
                 }
             }
 
@@ -425,10 +436,17 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (this.currentTab == Tabs.LAYOUT) {
+            float oldZoom = this.zoom;
             float zoomFactor = (float) Math.pow(1.1, scrollY);
-            zoom *= zoomFactor;
-            // Clamp zoom level
-            zoom = Math.max(1.0f, Math.min(zoom, 50.0f));
+            this.zoom *= zoomFactor;
+            this.zoom = Math.max(1.0f, Math.min(this.zoom, 50.0f));
+
+            // Adjust pan to zoom towards the mouse cursor
+            double mouseXRel = mouseX - this.pan.x;
+            double mouseYRel = mouseY - this.pan.y;
+            this.pan.x -= mouseXRel * (this.zoom / oldZoom - 1);
+            this.pan.y -= mouseYRel * (this.zoom / oldZoom - 1);
+
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);

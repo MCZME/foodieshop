@@ -1,4 +1,4 @@
-package mczme.foodieshop.util;
+package mczme.foodieshop.api.shop;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -34,6 +34,10 @@ public class PathGraph {
 
     public boolean hasNode(BlockPos pos) {
         return nodes.contains(pos);
+    }
+
+    public boolean isNode(BlockPos pos) {
+        return hasNode(pos);
     }
 
     public void addNode(BlockPos pos) {

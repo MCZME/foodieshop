@@ -2,7 +2,6 @@ package mczme.foodieshop.api.shop;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
-import mczme.foodieshop.util.PathGraph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +26,13 @@ public class ShopConfig {
         this.cashBoxPos = cashBoxPos;
         this.shopAreaPos1 = shopAreaPos1;
         this.shopAreaPos2 = shopAreaPos2;
-        this.seatLocations = seatLocations;
-        this.tableLocations = tableLocations;
+        this.seatLocations = seatLocations != null ? seatLocations : new ArrayList<>();
+        this.tableLocations = tableLocations != null ? tableLocations : new ArrayList<>();
         this.pathGraph = pathGraph != null ? pathGraph : new PathGraph();
+        if (tableLocations != null && seatLocations != null) {
+            bindSeatsToTables();
+            validateLayout();
+        }
     }
 
     public CompoundTag toNbt() {
@@ -91,7 +94,11 @@ public class ShopConfig {
 
         PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
-        return new ShopConfig(shopId, shopOwnerUUID, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
+        ShopConfig config = new ShopConfig(shopId, shopOwnerUUID, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
+        config.mergeTables();
+        config.bindSeatsToTables();
+        config.validateLayout();
+        return config;
     }
 
     public String getShopId() {
@@ -172,5 +179,60 @@ public class ShopConfig {
 
     public void setPathGraph(PathGraph pathGraph) {
         this.pathGraph = pathGraph;
+    }
+
+    private void mergeTables() {
+        List<TableInfo> mergedTables = new ArrayList<>();
+        List<TableInfo> unmergedTables = new ArrayList<>(this.tableLocations);
+
+        while (!unmergedTables.isEmpty()) {
+            TableInfo currentTable = unmergedTables.remove(0);
+            boolean merged = true;
+            while (merged) {
+                merged = false;
+                for (int i = 0; i < unmergedTables.size(); i++) {
+                    TableInfo otherTable = unmergedTables.get(i);
+                    if (currentTable.isAdjacent(otherTable.getLocations().get(0))) {
+                        currentTable.merge(otherTable);
+                        unmergedTables.remove(i);
+                        merged = true;
+                        break;
+                    }
+                }
+            }
+            mergedTables.add(currentTable);
+        }
+        this.tableLocations = mergedTables;
+    }
+
+    private void bindSeatsToTables() {
+        for (SeatInfo seat : this.seatLocations) {
+            for (TableInfo table : this.tableLocations) {
+                if (table.isAdjacent(seat.getLocation())) {
+                    seat.bindToTable(table.getTableId());
+                    table.bindSeat(seat);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void validateLayout() {
+        for (SeatInfo seat : this.seatLocations) {
+            boolean isConnectedToTable = seat.getBoundTableId() != null;
+            boolean isConnectedToPath = this.pathGraph.isNode(seat.getLocation());
+            seat.setValid(isConnectedToTable && isConnectedToPath);
+        }
+
+        for (TableInfo table : this.tableLocations) {
+            boolean hasValidSeat = false;
+            for (SeatInfo seat : table.getBoundSeats()) {
+                if (seat.isValid()) {
+                    hasValidSeat = true;
+                    break;
+                }
+            }
+            table.setValid(hasValidSeat);
+        }
     }
 }
