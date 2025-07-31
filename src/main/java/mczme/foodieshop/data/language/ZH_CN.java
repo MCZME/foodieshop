@@ -26,6 +26,7 @@ public class ZH_CN extends LanguageProvider {
 
         // 物品
         addItem(ModItems.DINER_BLUEPRINT_PEN, "店铺蓝图笔");
+        addItem(ModItems.SHOP_PATH_PEN, "店铺路径笔");
     
         // 信息
         add("message.foodieshop.diner_blueprint_pen.bind_success", "成功绑定店铺位置: %d, %d, %d");

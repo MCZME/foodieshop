@@ -6,7 +6,7 @@ import mczme.foodieshop.api.shop.SeatInfo;
 import mczme.foodieshop.api.shop.ShopConfig;
 import mczme.foodieshop.api.shop.TableInfo;
 import mczme.foodieshop.block.blockentity.CashierDeskBlockEntity;
-import mczme.foodieshop.registry.ModItems;
+import mczme.foodieshop.registry.ModTags;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -28,7 +28,7 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
                       int packedLight, int packedOverlay) {
 
         Player player = Minecraft.getInstance().player;
-        if (player == null || !isHoldingBlueprintPen(player)) {
+        if (player == null || !isHoldingEditPen(player)) {
             return;
         }
 
@@ -52,9 +52,9 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
         poseStack.popPose();
     }
 
-    private boolean isHoldingBlueprintPen(Player player) {
-        return player.getMainHandItem().is(ModItems.DINER_BLUEPRINT_PEN.get()) ||
-               player.getOffhandItem().is(ModItems.DINER_BLUEPRINT_PEN.get());
+    private boolean isHoldingEditPen(Player player) {
+        return player.getMainHandItem().is(ModTags.EDIT_PEN) ||
+               player.getOffhandItem().is(ModTags.EDIT_PEN);
     }
 
     private void renderShopArea(ShopConfig config, PoseStack poseStack,
@@ -81,8 +81,9 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
                              MultiBufferSource bufferSource, BlockPos origin) {
         VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
         for (TableInfo table : config.getTableLocations()) {
-            BlockPos pos = table.getLocation();
-            renderMarker(poseStack, consumer, pos, 1.0F, 0.5F, 0.0F, origin); // 橙色
+            for (BlockPos pos : table.getLocations()) {
+                renderMarker(poseStack, consumer, pos, 1.0F, 0.5F, 0.0F, origin); // 橙色
+            }
         }
     }
 

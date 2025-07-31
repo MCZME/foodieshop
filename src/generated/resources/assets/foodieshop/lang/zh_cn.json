@@ -27,6 +27,7 @@
   "gui.foodieshop.shop_config.validation_results": "验证结果:",
   "gui.foodieshop.shop_config.waypoints": "路径点数: %d",
   "item.foodieshop.diner_blueprint_pen": "店铺蓝图笔",
+  "item.foodieshop.shop_path_pen": "店铺路径笔",
   "itemGroup.foodieshop.foodieshop": "食客店铺",
   "message.foodieshop.diner_blueprint_pen.add_seat": "添加座位: %d, %d, %d",
   "message.foodieshop.diner_blueprint_pen.add_table": "添加桌子: %d, %d, %d",

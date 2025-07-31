@@ -16,6 +16,7 @@ public class FoodieShopModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         basicItem(ModItems.DINER_BLUEPRINT_PEN.get());
+        basicItem(ModItems.SHOP_PATH_PEN.get());
     }
 
 }

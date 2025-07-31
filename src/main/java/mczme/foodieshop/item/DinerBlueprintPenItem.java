@@ -15,13 +15,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import mczme.foodieshop.util.PathGraph;
-import java.util.Optional;
 
 public class DinerBlueprintPenItem extends Item {
     public static final String TAG_SHOP_POS = "shop_pos";
     public static final String TAG_SETUP_MODE = "setup_mode";
-    public static final String TAG_CONNECTION_START_NODE = "connection_start_node";
 
     public DinerBlueprintPenItem(Properties properties) {
         super(properties);
@@ -108,9 +105,6 @@ public class DinerBlueprintPenItem extends Item {
                         boolean addedTable = cashierDesk.toggleTable(pos, player);
                         player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen." + (addedTable ? "add_" : "remove_") + modeName, pos.getX(), pos.getY(), pos.getZ()));
                         break;
-                    case PATH:
-                        handlePathInteraction(player, itemStack, cashierDesk, pos);
-                        break;
                 }
                 level.sendBlockUpdated(shopPos, level.getBlockState(shopPos), level.getBlockState(shopPos), 3);
             }
@@ -120,71 +114,6 @@ public class DinerBlueprintPenItem extends Item {
         return super.useOn(context);
     }
 
-    private void handlePathInteraction(Player player, ItemStack itemStack, CashierDeskBlockEntity cashierDesk, BlockPos clickedPos) {
-        if (!cashierDesk.isPosInShopArea(clickedPos)) {
-            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
-            return;
-        }
-        CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        PathGraph pathGraph = cashierDesk.getShopConfig().getPathGraph();
-        Optional<BlockPos> connectionStartNodeOpt = getConnectionStartNode(tag);
-
-        if (connectionStartNodeOpt.isPresent()) {
-            // --- 连接模式 ---
-            BlockPos startNode = connectionStartNodeOpt.get();
-
-            if (startNode.equals(clickedPos)) {
-                // 再次点击起点: 删除节点
-                pathGraph.removeNode(startNode);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_node_removed", startNode.getX(), startNode.getY(), startNode.getZ()));
-                clearConnectionStartNode(tag);
-            } else if (pathGraph.hasNode(clickedPos)) {
-                // 点击另一个节点: 创建/删除边
-                if (pathGraph.hasEdge(startNode, clickedPos)) {
-                    pathGraph.removeEdge(startNode, clickedPos);
-                    player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_edge_removed", startNode.getX(), startNode.getY(), startNode.getZ(), clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                } else {
-                    pathGraph.addEdge(startNode, clickedPos);
-                    player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_edge_created", startNode.getX(), startNode.getY(), startNode.getZ(), clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                }
-                clearConnectionStartNode(tag);
-            } else {
-                // 点击非节点方块: 取消连接
-                clearConnectionStartNode(tag);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_connection_cancelled"));
-            }
-        } else {
-            // --- 节点添加模式 ---
-            if (pathGraph.hasNode(clickedPos)) {
-                // 点击已存在的节点: 进入连接模式
-                setConnectionStartNode(tag, clickedPos);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_connection_start", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-            } else {
-                // 点击空白方块: 添加新节点
-                pathGraph.addNode(clickedPos);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_node_added", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-            }
-        }
-
-        cashierDesk.getShopConfig().setPathGraph(pathGraph);
-        cashierDesk.setChanged(); // 标记方块实体已更新，以便同步到客户端
-        itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-    }
-
-    private void setConnectionStartNode(CompoundTag tag, BlockPos pos) {
-        tag.putLong(TAG_CONNECTION_START_NODE, pos.asLong());
-    }
-
-    private void clearConnectionStartNode(CompoundTag tag) {
-        tag.remove(TAG_CONNECTION_START_NODE);
-    }
-
-    private Optional<BlockPos> getConnectionStartNode(CompoundTag tag) {
-        if (tag.contains(TAG_CONNECTION_START_NODE)) {
-            return Optional.of(BlockPos.of(tag.getLong(TAG_CONNECTION_START_NODE)));
-        }
-        return Optional.empty();
-    }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
@@ -222,8 +151,7 @@ public class DinerBlueprintPenItem extends Item {
     public enum SetupMode {
         SHOP_AREA,
         SEAT,
-        TABLE,
-        PATH;
+        TABLE;
 
         public SetupMode next() {
             return values()[(this.ordinal() + 1) % values().length];
