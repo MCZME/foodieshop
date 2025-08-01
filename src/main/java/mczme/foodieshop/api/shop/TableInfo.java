@@ -1,16 +1,17 @@
 package mczme.foodieshop.api.shop;
 
+import org.joml.Vector3f;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+
+import java.util.*;
 
 public class TableInfo {
     private final UUID tableId;
     private List<BlockPos> locations;
+    private transient Set<Edge> renderEdges;
     private List<SeatInfo> boundSeats;
     private boolean isValid;
 
@@ -23,6 +24,7 @@ public class TableInfo {
         this.locations = locations;
         this.boundSeats = new ArrayList<>();
         this.isValid = false;
+        updateRenderEdges();
     }
 
     public boolean isAdjacent(BlockPos other) {
@@ -38,6 +40,7 @@ public class TableInfo {
 
     public void merge(TableInfo other) {
         this.locations.addAll(other.getLocations());
+        updateRenderEdges();
     }
 
     public UUID getTableId() {
@@ -46,6 +49,10 @@ public class TableInfo {
 
     public List<BlockPos> getLocations() {
         return locations;
+    }
+
+    public Set<Edge> getRenderEdges() {
+        return renderEdges;
     }
 
     public List<SeatInfo> getBoundSeats() {
@@ -108,6 +115,83 @@ public class TableInfo {
         }
 
         tableInfo.setValid(tag.getBoolean("isValid"));
+        tableInfo.updateRenderEdges();
         return tableInfo;
+    }
+
+    public void updateRenderEdges() {
+        this.renderEdges = new HashSet<>();
+        if (this.locations == null || this.locations.isEmpty()) {
+            return;
+        }
+
+        Map<Edge, Integer> edgeCounts = new HashMap<>();
+
+        for (BlockPos pos : this.locations) {
+            float x = pos.getX();
+            float y = pos.getY();
+            float z = pos.getZ();
+
+            Vector3f p000 = new Vector3f(x, y, z);
+            Vector3f p100 = new Vector3f(x + 1, y, z);
+            Vector3f p101 = new Vector3f(x + 1, y, z + 1);
+            Vector3f p001 = new Vector3f(x, y, z + 1);
+            Vector3f p010 = new Vector3f(x, y + 1, z);
+            Vector3f p110 = new Vector3f(x + 1, y + 1, z);
+            Vector3f p111 = new Vector3f(x + 1, y + 1, z + 1);
+            Vector3f p011 = new Vector3f(x, y + 1, z + 1);
+
+            List<Edge> blockEdges = Arrays.asList(
+                    // Bottom face
+                    new Edge(p000, p100),
+                    new Edge(p100, p101),
+                    new Edge(p101, p001),
+                    new Edge(p001, p000),
+                    // Top face
+                    new Edge(p010, p110),
+                    new Edge(p110, p111),
+                    new Edge(p111, p011),
+                    new Edge(p011, p010),
+                    // Vertical edges
+                    new Edge(p000, p010),
+                    new Edge(p100, p110),
+                    new Edge(p101, p111),
+                    new Edge(p001, p011)
+            );
+
+            for (Edge edge : blockEdges) {
+                edgeCounts.put(edge, edgeCounts.getOrDefault(edge, 0) + 1);
+            }
+        }
+
+        for (Map.Entry<Edge, Integer> entry : edgeCounts.entrySet()) {
+            if (entry.getValue() == 1) {
+                this.renderEdges.add(entry.getKey());
+            }
+        }
+    }
+
+    public static class Edge {
+        public final Vector3f from;
+        public final Vector3f to;
+
+        public Edge(Vector3f from, Vector3f to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Edge edge = (Edge) o;
+            return (from.equals(edge.from) && to.equals(edge.to)) ||
+                   (from.equals(edge.to) && to.equals(edge.from));
+        }
+
+        @Override
+        public int hashCode() {
+            return from.hashCode() + to.hashCode();
+        }
     }
 }

@@ -14,7 +14,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+
 import org.joml.Matrix4f;
+
 
 public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockEntity> {
     private static final float MARKER_SIZE = 0.2f;
@@ -78,11 +80,25 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
     }
 
     private void renderTables(ShopConfig config, PoseStack poseStack,
-                             MultiBufferSource bufferSource, BlockPos origin) {
+                              MultiBufferSource bufferSource, BlockPos origin) {
         VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        float r = 1.0F, g = 0.5F, b = 0.0F, a = 1.0F; // 橙色
+        Matrix4f matrix = poseStack.last().pose();
+
         for (TableInfo table : config.getTableLocations()) {
-            for (BlockPos pos : table.getLocations()) {
-                renderMarker(poseStack, consumer, pos, 1.0F, 0.5F, 0.0F, origin); // 橙色
+            if (table.getRenderEdges() == null) {
+                continue;
+            }
+            for (TableInfo.Edge edge : table.getRenderEdges()) {
+                float x1 = edge.from.x() - origin.getX();
+                float y1 = edge.from.y() - origin.getY();
+                float z1 = edge.from.z() - origin.getZ();
+                float x2 = edge.to.x() - origin.getX();
+                float y2 = edge.to.y() - origin.getY();
+                float z2 = edge.to.z() - origin.getZ();
+
+                consumer.addVertex(matrix, x1, y1, z1).setColor(r, g, b, a);
+                consumer.addVertex(matrix, x2, y2, z2).setColor(r, g, b, a);
             }
         }
     }

@@ -15,7 +15,7 @@ public class ModBlockEntities {
 
     public static final Supplier<BlockEntityType<CashierDeskBlockEntity>> CASHIER_DESK_BE =
             BLOCK_ENTITIES.register("cashier_desk", () ->
-                    BlockEntityType.Builder.of(CashierDeskBlockEntity::new, ModBlocks.CASHIER_DESK_BLOCK.get()).build(null));
+                    BlockEntityType.Builder.<CashierDeskBlockEntity>of(CashierDeskBlockEntity::new, ModBlocks.CASHIER_DESK_BLOCK.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);

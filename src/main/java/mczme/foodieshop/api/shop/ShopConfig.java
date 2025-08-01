@@ -95,7 +95,6 @@ public class ShopConfig {
         PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
         ShopConfig config = new ShopConfig(shopId, shopOwnerUUID, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
-        config.mergeTables();
         config.bindSeatsToTables();
         config.validateLayout();
         return config;
@@ -179,30 +178,6 @@ public class ShopConfig {
 
     public void setPathGraph(PathGraph pathGraph) {
         this.pathGraph = pathGraph;
-    }
-
-    private void mergeTables() {
-        List<TableInfo> mergedTables = new ArrayList<>();
-        List<TableInfo> unmergedTables = new ArrayList<>(this.tableLocations);
-
-        while (!unmergedTables.isEmpty()) {
-            TableInfo currentTable = unmergedTables.remove(0);
-            boolean merged = true;
-            while (merged) {
-                merged = false;
-                for (int i = 0; i < unmergedTables.size(); i++) {
-                    TableInfo otherTable = unmergedTables.get(i);
-                    if (currentTable.isAdjacent(otherTable.getLocations().get(0))) {
-                        currentTable.merge(otherTable);
-                        unmergedTables.remove(i);
-                        merged = true;
-                        break;
-                    }
-                }
-            }
-            mergedTables.add(currentTable);
-        }
-        this.tableLocations = mergedTables;
     }
 
     private void bindSeatsToTables() {
