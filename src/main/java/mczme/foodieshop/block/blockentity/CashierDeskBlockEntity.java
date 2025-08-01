@@ -123,6 +123,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
             return false;
         }
         this.shopConfig.getSeatLocations().add(new SeatInfo(pos));
+        this.shopConfig.validateLayout();
         setChanged();
         return true;
     }
@@ -141,6 +142,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
             // 移除座位
             boolean removed = this.shopConfig.getSeatLocations().remove(seat);
             if (removed) {
+                this.shopConfig.validateLayout();
                 setChanged();
             }
             return removed;
@@ -158,6 +160,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
             return false;
         }
         this.shopConfig.getTableLocations().add(new TableInfo(new ArrayList<>(List.of(pos))));
+        this.shopConfig.validateLayout();
         setChanged();
         return true;
     }
@@ -165,6 +168,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
     public boolean removeTable(BlockPos pos) {
         boolean removed = this.shopConfig.getTableLocations().removeIf(tableInfo -> tableInfo.getLocations().contains(pos));
         if (removed) {
+            this.shopConfig.validateLayout();
             setChanged();
         }
         return removed;
@@ -190,6 +194,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 // 绑定到新桌子
                 seat.bindToTable(newTable.getTableId());
                 newTable.bindSeat(seat); // 也在桌子端记录绑定
+                this.shopConfig.validateLayout();
                 setChanged();
                 return true;
             } else {
@@ -221,6 +226,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 }
                 // 移除 table2
                 this.shopConfig.getTableLocations().remove(table2);
+                this.shopConfig.validateLayout();
                 setChanged();
                 return true;
             } else {

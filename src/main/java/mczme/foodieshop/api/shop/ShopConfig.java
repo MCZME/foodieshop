@@ -29,10 +29,6 @@ public class ShopConfig {
         this.seatLocations = seatLocations != null ? seatLocations : new ArrayList<>();
         this.tableLocations = tableLocations != null ? tableLocations : new ArrayList<>();
         this.pathGraph = pathGraph != null ? pathGraph : new PathGraph();
-        if (tableLocations != null && seatLocations != null) {
-            bindSeatsToTables();
-            validateLayout();
-        }
     }
 
     public CompoundTag toNbt() {
@@ -94,10 +90,7 @@ public class ShopConfig {
 
         PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
-        ShopConfig config = new ShopConfig(shopId, shopOwnerUUID, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
-        config.bindSeatsToTables();
-        config.validateLayout();
-        return config;
+        return new ShopConfig(shopId, shopOwnerUUID, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
     }
 
     public String getShopId() {
@@ -180,19 +173,19 @@ public class ShopConfig {
         this.pathGraph = pathGraph;
     }
 
-    private void bindSeatsToTables() {
-        for (SeatInfo seat : this.seatLocations) {
-            for (TableInfo table : this.tableLocations) {
-                if (table.isAdjacent(seat.getLocation())) {
-                    seat.bindToTable(table.getTableId());
-                    table.bindSeat(seat);
-                    break;
-                }
+    public TableInfo getTableById(java.util.UUID tableId) {
+        if (tableId == null) {
+            return null;
+        }
+        for (TableInfo table : this.tableLocations) {
+            if (tableId.equals(table.getTableId())) {
+                return table;
             }
         }
+        return null;
     }
 
-    private void validateLayout() {
+    public void validateLayout() {
         for (SeatInfo seat : this.seatLocations) {
             boolean isConnectedToTable = seat.getBoundTableId() != null;
             boolean isConnectedToPath = this.pathGraph.isNode(seat.getLocation());

@@ -78,6 +78,20 @@ public class TableInfo {
         isValid = valid;
     }
 
+    public BlockPos getCenter() {
+        if (locations == null || locations.isEmpty()) {
+            return BlockPos.ZERO;
+        }
+        double x = 0, y = 0, z = 0;
+        for (BlockPos pos : locations) {
+            x += pos.getX();
+            y += pos.getY();
+            z += pos.getZ();
+        }
+        int count = locations.size();
+        return new BlockPos((int) (x / count), (int) (y / count), (int) (z / count));
+    }
+
     public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("tableId", this.tableId);

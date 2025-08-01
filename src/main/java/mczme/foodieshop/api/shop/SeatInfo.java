@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public class SeatInfo {
     private final BlockPos location;
-    private UUID boundTableId;
+    private UUID boundTableId = null;
     private boolean isValid;
 
     public SeatInfo(BlockPos location) {
@@ -26,6 +26,10 @@ public class SeatInfo {
 
     public void bindToTable(UUID tableId) {
         this.boundTableId = tableId;
+    }
+
+    public boolean isBoundToTable() {
+        return this.boundTableId != null;
     }
 
     public boolean isValid() {
@@ -51,6 +55,8 @@ public class SeatInfo {
         SeatInfo seatInfo = new SeatInfo(location);
         if (tag.hasUUID("boundTableId")) {
             seatInfo.bindToTable(tag.getUUID("boundTableId"));
+        } else {
+            seatInfo.bindToTable(null);
         }
         seatInfo.setValid(tag.getBoolean("isValid"));
         return seatInfo;

@@ -109,6 +109,24 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
         for (SeatInfo seat : config.getSeatLocations()) {
             BlockPos pos = seat.getLocation();
             renderMarker(poseStack, consumer, pos, 0.0F, 1.0F, 0.0F, origin); // 绿色
+
+            if (seat.isBoundToTable()) {
+                TableInfo table = config.getTableById(seat.getBoundTableId());
+                if (table != null) {
+                    Matrix4f matrix = poseStack.last().pose();
+                    float x1 = pos.getX() + 0.5f - origin.getX();
+                    float y1 = pos.getY() + 0.5f - origin.getY();
+                    float z1 = pos.getZ() + 0.5f - origin.getZ();
+
+                    BlockPos tableCenter = table.getCenter();
+                    float x2 = tableCenter.getX() + 0.5f - origin.getX();
+                    float y2 = tableCenter.getY() + 0.5f - origin.getY();
+                    float z2 = tableCenter.getZ() + 0.5f - origin.getZ();
+
+                    consumer.addVertex(matrix, x1, y1, z1).setColor(0.0F, 1.0F, 0.0F, 1.0F);
+                    consumer.addVertex(matrix, x2, y2, z2).setColor(1.0F, 0.5F, 0.0F, 1.0F);
+                }
+            }
         }
     }
 
