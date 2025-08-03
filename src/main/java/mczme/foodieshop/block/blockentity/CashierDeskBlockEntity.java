@@ -38,6 +38,8 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         this.shopConfig = new ShopConfig(
                 pos.toShortString(),
                 "",
+                "",
+                "",
                 pos,
                 null,
                 null,
@@ -241,6 +243,8 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         this.shopConfig = new ShopConfig(
                 this.getBlockPos().toShortString(),
                 "",
+                "",
+                "",
                 this.getBlockPos(),
                 null,
                 null,
@@ -256,7 +260,11 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
     public void setOwner(Player player) {
         if (this.shopConfig.getShopOwnerUUID() == null || this.shopConfig.getShopOwnerUUID().isEmpty()) {
             this.shopConfig.setShopOwnerUUID(player.getUUID().toString());
+            this.shopConfig.setOwnerName(player.getName().getString());
             setChanged();
+            if (this.level != null && !this.level.isClientSide) {
+                this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+            }
         }
     }
 

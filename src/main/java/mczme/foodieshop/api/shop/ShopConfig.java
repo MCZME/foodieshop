@@ -9,6 +9,8 @@ import java.util.List;
 public class ShopConfig {
     private String shopId;
     private String shopOwnerUUID;
+    private String ownerName;
+    private String shopName;
     private BlockPos cashierDeskLocation;
     private BlockPos menuContainerPos;
     private BlockPos cashBoxPos;
@@ -18,9 +20,11 @@ public class ShopConfig {
     private List<TableInfo> tableLocations;
     private PathGraph pathGraph;
 
-    public ShopConfig(String shopId, String shopOwnerUUID, BlockPos cashierDeskLocation, BlockPos menuContainerPos, BlockPos cashBoxPos, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, PathGraph pathGraph) {
+    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, BlockPos menuContainerPos, BlockPos cashBoxPos, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, PathGraph pathGraph) {
         this.shopId = shopId;
         this.shopOwnerUUID = shopOwnerUUID;
+        this.ownerName = ownerName != null ? ownerName : "";
+        this.shopName = shopName != null ? shopName : "";
         this.cashierDeskLocation = cashierDeskLocation;
         this.menuContainerPos = menuContainerPos;
         this.cashBoxPos = cashBoxPos;
@@ -35,6 +39,8 @@ public class ShopConfig {
         CompoundTag tag = new CompoundTag();
         tag.putString("shopId", this.shopId);
         tag.putString("shopOwnerUUID", this.shopOwnerUUID);
+        tag.putString("ownerName", this.ownerName);
+        tag.putString("shopName", this.shopName);
         tag.put("cashierDeskLocation", NbtUtils.writeBlockPos(this.cashierDeskLocation));
         if (this.menuContainerPos != null) {
             tag.put("menuContainerPos", NbtUtils.writeBlockPos(this.menuContainerPos));
@@ -70,6 +76,8 @@ public class ShopConfig {
     public static ShopConfig fromNbt(CompoundTag tag) {
         String shopId = tag.getString("shopId");
         String shopOwnerUUID = tag.getString("shopOwnerUUID");
+        String ownerName = tag.getString("ownerName");
+        String shopName = tag.getString("shopName");
         BlockPos cashierDeskLocation = NbtUtils.readBlockPos(tag, "cashierDeskLocation").orElse(BlockPos.ZERO);
         BlockPos menuContainerPos = NbtUtils.readBlockPos(tag, "menuContainerPos").orElse(null);
         BlockPos cashBoxPos = NbtUtils.readBlockPos(tag, "cashBoxPos").orElse(null);
@@ -90,7 +98,7 @@ public class ShopConfig {
 
         PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
-        return new ShopConfig(shopId, shopOwnerUUID, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
+        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
     }
 
     public String getShopId() {
@@ -99,6 +107,22 @@ public class ShopConfig {
 
     public void setShopId(String shopId) {
         this.shopId = shopId;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    public String getShopName() {
+        return shopName;
+    }
+
+    public void setShopName(String shopName) {
+        this.shopName = shopName;
     }
 
     public String getShopOwnerUUID() {
