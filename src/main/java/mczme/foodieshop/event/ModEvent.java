@@ -8,6 +8,8 @@ import mczme.foodieshop.data.modelprovider.FoodieShopModelProvider;
 import mczme.foodieshop.data.tag.ModBlockTagsProvider;
 import mczme.foodieshop.data.tag.ModItemTagsProvider;
 import mczme.foodieshop.entity.FoodieEntity;
+import mczme.foodieshop.network.packet.c2s.ResetLayoutPacket;
+import mczme.foodieshop.network.packet.c2s.UpdateShopConfigPacket;
 import mczme.foodieshop.registry.ModEntityTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
@@ -17,6 +19,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @EventBusSubscriber(modid = FoodieShop.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class ModEvent {
@@ -41,7 +45,25 @@ public class ModEvent {
         // 标签
         ModBlockTagsProvider blockTagsProvider = new ModBlockTagsProvider(output, lookupProvider, existingFileHelper);
         generator.addProvider(event.includeServer(), blockTagsProvider);
-        generator.addProvider(event.includeServer(), new ModItemTagsProvider(output, lookupProvider, blockTagsProvider.contentsGetter(), existingFileHelper));
+        generator.addProvider(event.includeServer(), new ModItemTagsProvider(output, lookupProvider,
+                blockTagsProvider.contentsGetter(), existingFileHelper));
+    }
+    
+    @SubscribeEvent
+    public static void register(final RegisterPayloadHandlersEvent event) {
+        final PayloadRegistrar registrar = event.registrar(FoodieShop.MODID);
+
+        // 注册客户端到服务器的数据包
+        registrar.playToServer(
+                UpdateShopConfigPacket.TYPE,
+                UpdateShopConfigPacket.STREAM_CODEC,
+                UpdateShopConfigPacket::handle
+        );
+        registrar.playToServer(
+                ResetLayoutPacket.TYPE,
+                ResetLayoutPacket.STREAM_CODEC,
+                ResetLayoutPacket::handle
+        );
     }
     
 }

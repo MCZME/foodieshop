@@ -4,10 +4,14 @@ import mczme.foodieshop.api.shop.SeatInfo;
 import mczme.foodieshop.api.shop.ShopConfig;
 import mczme.foodieshop.api.shop.TableInfo;
 import mczme.foodieshop.block.blockentity.CashierDeskBlockEntity;
+import mczme.foodieshop.network.packet.c2s.ResetLayoutPacket;
+import mczme.foodieshop.network.packet.c2s.UpdateShopConfigPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.core.BlockPos;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -29,7 +33,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     private SelectedElement selectedElement = null;
     private Vector2d lastMousePos = null;
     private boolean panInitialized = false;
-
+    private EditBox shopNameEditBox;
 
     public ShopConfigScreen(ShopConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -41,22 +45,6 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     @Override
     protected void init() {
         super.init();
-        this.clearWidgets();
-
-        // Tabs
-        this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.general"), (button) -> this.setCurrentTab(Tabs.GENERAL))
-                .pos(this.leftPos + 5, this.topPos + 5)
-                .size(60, 20)
-                .build());
-        this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.layout"), (button) -> this.setCurrentTab(Tabs.LAYOUT))
-                .pos(this.leftPos + 70, this.topPos + 5)
-                .size(70, 20)
-                .build());
-        this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.save"), (button) -> this.setCurrentTab(Tabs.SAVE))
-                .pos(this.leftPos + 145, this.topPos + 5)
-                .size(70, 20)
-                .build());
-
         this.updateWidgets();
     }
 
@@ -67,8 +55,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
 
     private void updateWidgets() {
         this.clearWidgets();
-        // Re-add common widgets
-        // Tabs
+        // 选项卡
         this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.general"), (button) -> this.setCurrentTab(Tabs.GENERAL))
                 .pos(this.leftPos + 5, this.topPos + 5)
                 .size(60, 20)
@@ -82,78 +69,72 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 .size(70, 20)
                 .build());
 
-        // Add widgets and bottom buttons based on the current tab
+        // 根据当前选项卡添加控件和底部按钮
         switch (this.currentTab) {
             case GENERAL:
                 initGeneralSettingsWidgets();
-                // Bottom buttons for GENERAL
-                this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.close"), (button) -> this.onClose())
-                        .pos(this.leftPos + 5, this.topPos + this.imageHeight - 25)
-                        .size(50, 20)
-                        .build());
-                this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.save"), (button) -> {
-                    // TODO: Send packet to server to save config
-                    this.onClose();
-                })
-                        .pos(this.leftPos + this.imageWidth - 55, this.topPos + this.imageHeight - 25)
-                        .size(50, 20)
-                        .build());
                 break;
             case LAYOUT:
                 initAreaAndLayoutWidgets();
-                // Bottom buttons for LAYOUT
-                this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.close"), (button) -> this.onClose())
-                        .pos(this.leftPos + 5, this.topPos + this.imageHeight - 25)
-                        .size(50, 20)
-                        .build());
-                this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.reset_layout"), (button) -> {
-                    // TODO: Implement layout reset logic
-                })
-                        .pos(this.leftPos + (this.imageWidth / 2) - 40, this.topPos + this.imageHeight - 25)
-                        .size(80, 20)
-                        .build());
-                this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.save"), (button) -> {
-                    // TODO: Send packet to server to save config
-                    this.onClose();
-                })
-                        .pos(this.leftPos + this.imageWidth - 55, this.topPos + this.imageHeight - 25)
-                        .size(50, 20)
-                        .build());
                 break;
             case SAVE:
                 initSaveAndValidateWidgets();
-                // Bottom buttons for SAVE
-                this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.close"), (button) -> this.onClose())
-                        .pos(this.leftPos + 5, this.topPos + this.imageHeight - 25)
-                        .size(50, 20)
-                        .build());
-                this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.validate"), (button) -> {
-                    // TODO: 发送数据包到服务器以运行验证
-                    this.validationMessage = Component.literal("Validation complete. All good!");
-                })
-                        .pos(this.leftPos + (this.imageWidth / 2) - 40, this.topPos + this.imageHeight - 25)
-                        .size(80, 20)
-                        .build());
-                this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.save"), (button) -> {
-                    // TODO: Send packet to server to save config
-                    this.onClose();
-                })
-                        .pos(this.leftPos + this.imageWidth - 55, this.topPos + this.imageHeight - 25)
-                        .size(50, 20)
-                        .build());
                 break;
+        }
+        
+        // 所有选项卡通用的底部按钮
+        this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.close"), (button) -> this.onClose())
+                .pos(this.leftPos + 5, this.topPos + this.imageHeight - 25)
+                .size(50, 20)
+                .build());
+        this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.save"), (button) -> this.saveAndClose())
+                .pos(this.leftPos + this.imageWidth - 55, this.topPos + this.imageHeight - 25)
+                .size(50, 20)
+                .build());
+
+        // 特定选项卡的底部按钮
+        if (this.currentTab == Tabs.LAYOUT) {
+            this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.reset_layout"), (button) -> {
+                ResetLayoutPacket packet = new ResetLayoutPacket(this.blockEntity.getBlockPos());
+                if (Minecraft.getInstance().getConnection() != null) {
+                    Minecraft.getInstance().getConnection().send(packet);
+                }
+            })
+                    .pos(this.leftPos + (this.imageWidth / 2) - 40, this.topPos + this.imageHeight - 25)
+                    .size(80, 20)
+                    .build());
+        } else if (this.currentTab == Tabs.SAVE) {
+            this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.validate"), (button) -> {
+                // TODO: 发送数据包到服务器以运行验证
+                this.validationMessage = Component.literal("验证完成。一切正常！");
+            })
+                    .pos(this.leftPos + (this.imageWidth / 2) - 40, this.topPos + this.imageHeight - 25)
+                    .size(80, 20)
+                    .build());
         }
     }
 
+    private void saveAndClose() {
+        // 保存前确保从编辑框获取最新值
+        if (this.shopNameEditBox != null && this.currentTab == Tabs.GENERAL) {
+            this.menu.getShopConfig().setShopName(this.shopNameEditBox.getValue());
+        }
+        
+        UpdateShopConfigPacket packet = new UpdateShopConfigPacket(this.blockEntity.getBlockPos(), this.menu.getShopConfig());
+        if (Minecraft.getInstance().getConnection() != null) {
+            Minecraft.getInstance().getConnection().send(packet);
+        }
+        this.onClose();
+    }
+
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX,
-            int mouseY) {
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
     
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        
+        // 无操作
     }
 
     @Override
@@ -162,7 +143,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
-        // Render content for the current tab
+        // 渲染当前选项卡的内容
         switch (this.currentTab) {
             case GENERAL:
                 renderGeneralSettings(guiGraphics, mouseX, mouseY, partialTicks);
@@ -177,7 +158,10 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     }
 
     private void initGeneralSettingsWidgets() {
-        // No widgets needed here anymore, all are rendered in renderGeneralSettings
+        this.shopNameEditBox = new EditBox(this.font, this.leftPos + 15, this.topPos + 70, 150, 18, Component.translatable("gui.foodieshop.shop_config.shop_name"));
+        this.shopNameEditBox.setValue(this.menu.getShopConfig().getShopName());
+        this.shopNameEditBox.setResponder((text) -> this.menu.getShopConfig().setShopName(text));
+        this.addRenderableWidget(this.shopNameEditBox);
     }
 
     private void renderGeneralSettings(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -188,15 +172,14 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         guiGraphics.drawString(this.font, ownerName, this.leftPos + 15, this.topPos + 45, 0x7F7F7F, false);
 
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.shop_name"), this.leftPos + 10, this.topPos + 60, 0x404040, false);
-        String shopName = config.getShopName().isEmpty() ? "Not set" : config.getShopName();
-        guiGraphics.drawString(this.font, shopName, this.leftPos + 15, this.topPos + 70, 0x7F7F7F, false);
+        // EditBox 会自行渲染。
 
-        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.shop_location"), this.leftPos + 10, this.topPos + 85, 0x404040, false);
-        guiGraphics.drawString(this.font, this.blockEntity.getBlockPos().toShortString(), this.leftPos + 15, this.topPos + 95, 0x7F7F7F, false);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.shop_location"), this.leftPos + 10, this.topPos + 95, 0x404040, false);
+        guiGraphics.drawString(this.font, this.blockEntity.getBlockPos().toShortString(), this.leftPos + 15, this.topPos + 105, 0x7F7F7F, false);
     }
 
     private void initAreaAndLayoutWidgets() {
-        // The reset button is now handled in updateWidgets to be placed correctly.
+        // 此选项卡的主区域不需要控件
     }
 
     private void renderAreaAndLayout(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -227,20 +210,15 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         if (config.getShopAreaPos1() != null && config.getShopAreaPos2() != null) {
             BlockPos pos1 = config.getShopAreaPos1();
             BlockPos pos2 = config.getShopAreaPos2();
-
             BlockPos minPos = new BlockPos(Math.min(pos1.getX(), pos2.getX()), Math.min(pos1.getY(), pos2.getY()), Math.min(pos1.getZ(), pos2.getZ()));
             BlockPos maxPos = new BlockPos(Math.max(pos1.getX(), pos2.getX()), Math.max(pos1.getY(), pos2.getY()), Math.max(pos1.getZ(), pos2.getZ()));
-
             Vector2d screenMin = worldToScreen(minPos, center);
             Vector2d screenMax = worldToScreen(maxPos, center);
-
             float halfZoom = zoom / 2.0f;
-
             int minX = (int) (screenMin.x - halfZoom);
             int minY = (int) (screenMin.y - halfZoom);
             int maxX = (int) (screenMax.x + halfZoom);
             int maxY = (int) (screenMax.y + halfZoom);
-
             guiGraphics.fill(minX, minY, maxX, maxY, 0x33FF0000);
             guiGraphics.renderOutline(minX, minY, maxX - minX, maxY - minY, 0xFFFF0000);
         }
@@ -252,10 +230,9 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             for (BlockPos tablePos : table.getLocations()) {
                 Vector2d pos = worldToScreen(tablePos, center);
                 float size = zoom;
-                guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF8B4513); // SaddleBrown
-
+                guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF8B4513);
                 if (selectedElement != null && selectedElement.type == ElementType.TABLE && selectedElement.index == i) {
-                    guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00); // Yellow
+                    guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
                 }
             }
         }
@@ -266,18 +243,15 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             SeatInfo seat = config.getSeatLocations().get(i);
             Vector2d pos = worldToScreen(seat.getLocation(), center);
             float size = zoom;
-            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF00FF00); // Lime
-
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF00FF00);
             if (selectedElement != null && selectedElement.type == ElementType.SEAT && selectedElement.index == i) {
-                guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00); // Yellow
+                guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
     }
 
     private void renderWaypoints(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
         if (config.getPathGraph() == null) return;
-
-        // Render edges
         for (java.util.List<BlockPos> edge : config.getPathGraph().getEdges()) {
             if (edge.size() == 2) {
                 Vector2d pos1 = worldToScreen(edge.get(0), center);
@@ -286,30 +260,25 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 guiGraphics.vLine((int) pos2.x, (int) pos1.y, (int) pos2.y, 0xFF0000FF);
             }
         }
-
-        // Render nodes
         for (int i = 0; i < config.getPathGraph().getNodes().size(); i++) {
             BlockPos waypoint = config.getPathGraph().getNodes().get(i);
             Vector2d currentPos = worldToScreen(waypoint, center);
-            float size = zoom * 0.6f; // Waypoints are slightly smaller
-            guiGraphics.fill((int) (currentPos.x - size / 2), (int) (currentPos.y - size / 2), (int) (currentPos.x + size / 2), (int) (currentPos.y + size / 2), 0xFF0000FF); // Blue
-
+            float size = zoom * 0.6f;
+            guiGraphics.fill((int) (currentPos.x - size / 2), (int) (currentPos.y - size / 2), (int) (currentPos.x + size / 2), (int) (currentPos.y + size / 2), 0xFF0000FF);
             if (selectedElement != null && selectedElement.type == ElementType.WAYPOINT && selectedElement.index == i) {
-                guiGraphics.renderOutline((int) (currentPos.x - size / 2 - 1), (int) (currentPos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00); // Yellow
+                guiGraphics.renderOutline((int) (currentPos.x - size / 2 - 1), (int) (currentPos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
     }
 
     private void initSaveAndValidateWidgets() {
-        // The validate button is now handled in updateWidgets.
+        // 此选项卡的主区域不需要控件
     }
 
     private void renderSaveAndValidate(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.validation_results"), this.leftPos + 10, this.topPos + 65, 0x404040, false);
         guiGraphics.drawString(this.font, this.validationMessage, this.leftPos + 15, this.topPos + 78, 0x7F7F7F, false);
-
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.logs"), this.leftPos + 10, this.topPos + 100, 0x404040, false);
-        // TODO: 显示日志或提示
         guiGraphics.drawString(this.font, "日志将显示在这里。", this.leftPos + 15, this.topPos + 113, 0x7F7F7F, false);
     }
 
@@ -332,8 +301,6 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             ShopConfig config = this.menu.getShopConfig();
             BlockPos center = this.blockEntity.getBlockPos();
             selectedElement = null;
-
-            // Check seats
             for (int i = 0; i < config.getSeatLocations().size(); i++) {
                 Vector2d pos = worldToScreen(config.getSeatLocations().get(i).getLocation(), center);
                 if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
@@ -341,8 +308,6 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                     return true;
                 }
             }
-
-            // Check tables
             for (int i = 0; i < config.getTableLocations().size(); i++) {
                 for (BlockPos tablePos : config.getTableLocations().get(i).getLocations()) {
                     Vector2d pos = worldToScreen(tablePos, center);
@@ -352,8 +317,6 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                     }
                 }
             }
-
-            // Check waypoints
             if (config.getPathGraph() != null) {
                 for (int i = 0; i < config.getPathGraph().getNodes().size(); i++) {
                     Vector2d pos = worldToScreen(config.getPathGraph().getNodes().get(i), center);
@@ -390,13 +353,10 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             float zoomFactor = (float) Math.pow(1.1, scrollY);
             this.zoom *= zoomFactor;
             this.zoom = Math.max(1.0f, Math.min(this.zoom, 50.0f));
-
-            // Adjust pan to zoom towards the mouse cursor
             double mouseXRel = mouseX - this.pan.x;
             double mouseYRel = mouseY - this.pan.y;
             this.pan.x -= mouseXRel * (this.zoom / oldZoom - 1);
             this.pan.y -= mouseYRel * (this.zoom / oldZoom - 1);
-
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
