@@ -41,10 +41,6 @@ public class DinerBlueprintPenItem extends Item {
         if (player.isShiftKeyDown()) {
             if (level.getBlockState(clickedPos).getBlock() instanceof CashierDeskBlock) {
                 if (!level.isClientSide()) {
-                    if (level.getBlockEntity(clickedPos) instanceof CashierDeskBlockEntity cashierDesk) {
-                        cashierDesk.clearAllData();
-                        level.sendBlockUpdated(clickedPos, level.getBlockState(clickedPos), level.getBlockState(clickedPos), 3);
-                    }
                     CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
                     tag.putLong(TAG_SHOP_POS, clickedPos.asLong());
                     tag.putString(TAG_SETUP_MODE, SetupMode.SHOP_AREA.name());
