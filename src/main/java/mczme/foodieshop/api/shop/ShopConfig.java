@@ -12,22 +12,22 @@ public class ShopConfig {
     private String ownerName;
     private String shopName;
     private BlockPos cashierDeskLocation;
-    private List<BlockPos> inventoryPos;
-    private List<BlockPos> cashBoxPos;
+    private List<BlockPos> inventoryLocations;
+    private List<BlockPos> cashierLocations;
     private BlockPos shopAreaPos1;
     private BlockPos shopAreaPos2;
     private List<SeatInfo> seatLocations;
     private List<TableInfo> tableLocations;
     private PathGraph pathGraph;
 
-    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, List<BlockPos> inventoryPos, List<BlockPos> cashBoxPos, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, PathGraph pathGraph) {
+    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, List<BlockPos> inventoryLocations, List<BlockPos> cashierLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, PathGraph pathGraph) {
         this.shopId = shopId;
         this.shopOwnerUUID = shopOwnerUUID;
         this.ownerName = ownerName != null ? ownerName : "";
         this.shopName = shopName != null ? shopName : "";
         this.cashierDeskLocation = cashierDeskLocation;
-        this.inventoryPos = inventoryPos != null ? inventoryPos : new ArrayList<>();
-        this.cashBoxPos = cashBoxPos != null ? cashBoxPos : new ArrayList<>();
+        this.inventoryLocations = inventoryLocations != null ? inventoryLocations : new ArrayList<>();
+        this.cashierLocations = cashierLocations != null ? cashierLocations : new ArrayList<>();
         this.shopAreaPos1 = shopAreaPos1;
         this.shopAreaPos2 = shopAreaPos2;
         this.seatLocations = seatLocations != null ? seatLocations : new ArrayList<>();
@@ -42,19 +42,19 @@ public class ShopConfig {
         tag.putString("ownerName", this.ownerName);
         tag.putString("shopName", this.shopName);
         tag.put("cashierDeskLocation", NbtUtils.writeBlockPos(this.cashierDeskLocation));
-        if (this.inventoryPos != null) {
+        if (this.inventoryLocations != null) {
             ListTag list = new ListTag();
-            for (BlockPos pos : this.inventoryPos) {
+            for (BlockPos pos : this.inventoryLocations) {
                 list.add(NbtUtils.writeBlockPos(pos));
             }
-            tag.put("inventoryPos", list);
+            tag.put("inventoryLocations", list);
         }
-        if (this.cashBoxPos != null) {
+        if (this.cashierLocations != null) {
             ListTag list = new ListTag();
-            for (BlockPos pos : this.cashBoxPos) {
+            for (BlockPos pos : this.cashierLocations) {
                 list.add(NbtUtils.writeBlockPos(pos));
             }
-            tag.put("cashBoxPos", list);
+            tag.put("cashierLocations", list);
         }
         if (this.shopAreaPos1 != null) {
             tag.put("shopAreaPos1", NbtUtils.writeBlockPos(this.shopAreaPos1));
@@ -88,26 +88,22 @@ public class ShopConfig {
         String shopName = tag.getString("shopName");
         BlockPos cashierDeskLocation = NbtUtils.readBlockPos(tag, "cashierDeskLocation").orElse(BlockPos.ZERO);
 
-        List<BlockPos> inventoryPos = new ArrayList<>();
-        if (tag.contains("inventoryPos", Tag.TAG_LIST)) {
-            ListTag list = tag.getList("inventoryPos", CompoundTag.TAG_COMPOUND);
+        List<BlockPos> inventoryLocations = new ArrayList<>();
+        if (tag.contains("inventoryLocations", Tag.TAG_LIST)) {
+            ListTag list = tag.getList("inventoryLocations", CompoundTag.TAG_INT_ARRAY);
             for (int i = 0; i < list.size(); i++) {
-                CompoundTag posTag = list.getCompound(i);
-                inventoryPos.add(new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z")));
+                int[] posTag = list.getIntArray(i);
+                inventoryLocations.add(new BlockPos(posTag[0], posTag[1], posTag[2]));
             }
-        } else if (tag.contains("menuContainerPos", CompoundTag.TAG_COMPOUND)) { // Legacy support
-            NbtUtils.readBlockPos(tag, "menuContainerPos").ifPresent(inventoryPos::add);
         }
 
-        List<BlockPos> cashBoxPos = new ArrayList<>();
-        if (tag.contains("cashBoxPos", Tag.TAG_LIST)) {
-            ListTag list = tag.getList("cashBoxPos", CompoundTag.TAG_COMPOUND);
+        List<BlockPos> cashierLocations = new ArrayList<>();
+        if (tag.contains("cashierLocations", Tag.TAG_LIST)) {
+            ListTag list = tag.getList("cashierLocations", CompoundTag.TAG_INT_ARRAY);
             for (int i = 0; i < list.size(); i++) {
-                CompoundTag posTag = list.getCompound(i);
-                cashBoxPos.add(new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z")));
+                int[] posTag = list.getIntArray(i);
+                cashierLocations.add(new BlockPos(posTag[0], posTag[1], posTag[2]));
             }
-        } else if (tag.contains("cashBoxPos", CompoundTag.TAG_COMPOUND)) { // Legacy support
-            NbtUtils.readBlockPos(tag, "cashBoxPos").ifPresent(cashBoxPos::add);
         }
 
         BlockPos shopAreaPos1 = NbtUtils.readBlockPos(tag, "shopAreaPos1").orElse(null);
@@ -127,7 +123,7 @@ public class ShopConfig {
 
         PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
-        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
+        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryLocations, cashierLocations, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
     }
 
     public String getShopId() {
@@ -170,20 +166,20 @@ public class ShopConfig {
         this.cashierDeskLocation = cashierDeskLocation;
     }
 
-    public List<BlockPos> getInventoryPos() {
-        return inventoryPos;
+    public List<BlockPos> getInventoryLocations() {
+        return inventoryLocations;
     }
 
-    public void setInventoryPos(List<BlockPos> inventoryPos) {
-        this.inventoryPos = inventoryPos;
+    public void setInventoryLocations(List<BlockPos> inventoryLocations) {
+        this.inventoryLocations = inventoryLocations;
     }
 
-    public List<BlockPos> getCashBoxPos() {
-        return cashBoxPos;
+    public List<BlockPos> getCashierLocations() {
+        return cashierLocations;
     }
 
-    public void setCashBoxPos(List<BlockPos> cashBoxPos) {
-        this.cashBoxPos = cashBoxPos;
+    public void setCashierLocations(List<BlockPos> cashierLocations) {
+        this.cashierLocations = cashierLocations;
     }
 
     public BlockPos getShopAreaPos1() {
@@ -224,6 +220,29 @@ public class ShopConfig {
 
     public void setPathGraph(PathGraph pathGraph) {
         this.pathGraph = pathGraph;
+    }
+
+    public boolean isPositionOccupied(BlockPos pos) {
+        if (this.cashierDeskLocation.equals(pos)) {
+            return true;
+        }
+        if (this.inventoryLocations.contains(pos)) {
+            return true;
+        }
+        if (this.cashierLocations.contains(pos)) {
+            return true;
+        }
+        for (SeatInfo seat : this.seatLocations) {
+            if (seat.getLocation().equals(pos)) {
+                return true;
+            }
+        }
+        for (TableInfo table : this.tableLocations) {
+            if (table.getLocations().contains(pos)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public TableInfo getTableById(java.util.UUID tableId) {

@@ -202,6 +202,8 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         renderWaypoints(guiGraphics, config, center);
         renderTables(guiGraphics, config, center);
         renderSeats(guiGraphics, config, center);
+        renderInventories(guiGraphics, config, center);
+        renderCashiers(guiGraphics, config, center);
 
         guiGraphics.disableScissor();
     }
@@ -245,6 +247,30 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             float size = zoom;
             guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF00FF00);
             if (selectedElement != null && selectedElement.type == ElementType.SEAT && selectedElement.index == i) {
+                guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
+            }
+        }
+    }
+
+    private void renderInventories(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+        for (int i = 0; i < config.getInventoryLocations().size(); i++) {
+            BlockPos inventoryPos = config.getInventoryLocations().get(i);
+            Vector2d pos = worldToScreen(inventoryPos, center);
+            float size = zoom;
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF00008B);
+            if (selectedElement != null && selectedElement.type == ElementType.INVENTORY && selectedElement.index == i) {
+                guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
+            }
+        }
+    }
+
+    private void renderCashiers(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+        for (int i = 0; i < config.getCashierLocations().size(); i++) {
+            BlockPos cashierPos = config.getCashierLocations().get(i);
+            Vector2d pos = worldToScreen(cashierPos, center);
+            float size = zoom;
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFD700);
+            if (selectedElement != null && selectedElement.type == ElementType.CASHIER && selectedElement.index == i) {
                 guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
@@ -317,6 +343,20 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                     }
                 }
             }
+            for (int i = 0; i < config.getInventoryLocations().size(); i++) {
+                Vector2d pos = worldToScreen(config.getInventoryLocations().get(i), center);
+                if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
+                    selectedElement = new SelectedElement(ElementType.INVENTORY, i);
+                    return true;
+                }
+            }
+            for (int i = 0; i < config.getCashierLocations().size(); i++) {
+                Vector2d pos = worldToScreen(config.getCashierLocations().get(i), center);
+                if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
+                    selectedElement = new SelectedElement(ElementType.CASHIER, i);
+                    return true;
+                }
+            }
             if (config.getPathGraph() != null) {
                 for (int i = 0; i < config.getPathGraph().getNodes().size(); i++) {
                     Vector2d pos = worldToScreen(config.getPathGraph().getNodes().get(i), center);
@@ -376,7 +416,9 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     private enum ElementType {
         SEAT,
         TABLE,
-        WAYPOINT
+        WAYPOINT,
+        INVENTORY,
+        CASHIER
     }
 
     private record SelectedElement(ElementType type, int index) {

@@ -45,14 +45,21 @@ public class ShopInventoryPenItem extends ShopEditPenItem {
 
         if (selectedPos != null && selectedPos.equals(clickedPos)) {
             // Remove logic
+            boolean removed = false;
             if (mode == 0) {
-                cashierDesk.removeInventoryPos(clickedPos);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.inventory_pos_removed", clickedPos.toShortString()));
+                removed = cashierDesk.removeInventoryPos(clickedPos);
+                if (removed) {
+                    player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.inventory_pos_removed", clickedPos.toShortString()));
+                }
             } else {
-                cashierDesk.removeCashBoxPos(clickedPos);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.cash_box_pos_removed", clickedPos.toShortString()));
+                removed = cashierDesk.removeCashBoxPos(clickedPos);
+                if (removed) {
+                    player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.cash_box_pos_removed", clickedPos.toShortString()));
+                }
             }
-            clearSelectedPos(stack);
+            if (removed) {
+                clearSelectedPos(stack);
+            }
         } else {
             // Add or Select logic
             boolean isAlreadyInList = (mode == 0) ?
@@ -63,14 +70,21 @@ public class ShopInventoryPenItem extends ShopEditPenItem {
                 setSelectedPos(stack, clickedPos);
                 player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.pos_selected", clickedPos.toShortString()));
             } else {
+                boolean added = false;
                 if (mode == 0) {
-                    cashierDesk.addInventoryPos(clickedPos, player);
-                    player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.inventory_pos_added", clickedPos.toShortString()));
+                    added = cashierDesk.addInventoryPos(clickedPos, player);
+                    if (added) {
+                        player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.inventory_pos_added", clickedPos.toShortString()));
+                    }
                 } else {
-                    cashierDesk.addCashBoxPos(clickedPos, player);
-                    player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.cash_box_pos_added", clickedPos.toShortString()));
+                    added = cashierDesk.addCashBoxPos(clickedPos, player);
+                    if (added) {
+                        player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.cash_box_pos_added", clickedPos.toShortString()));
+                    }
                 }
-                clearSelectedPos(stack);
+                if (added) {
+                    clearSelectedPos(stack);
+                }
             }
         }
         return InteractionResult.SUCCESS;
