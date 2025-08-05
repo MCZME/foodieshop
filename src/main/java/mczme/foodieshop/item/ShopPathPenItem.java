@@ -44,7 +44,7 @@ public class ShopPathPenItem extends ShopEditPenItem {
         if (connectionStartNodeOpt.isPresent()) {
             handleInteractionWithSelection(player, tag, pathGraph, clickedPos, connectionStartNodeOpt.get());
         } else {
-            handleInteractionWithoutSelection(player, tag, pathGraph, clickedPos);
+            handleInteractionWithoutSelection(player, tag, pathGraph, clickedPos, cashierDesk);
         }
 
         cashierDesk.getShopConfig().setPathGraph(pathGraph);
@@ -70,11 +70,15 @@ public class ShopPathPenItem extends ShopEditPenItem {
         clearConnectionStartNode(tag);
     }
 
-    private void handleInteractionWithoutSelection(Player player, CompoundTag tag, PathGraph pathGraph, BlockPos clickedPos) {
+    private void handleInteractionWithoutSelection(Player player, CompoundTag tag, PathGraph pathGraph, BlockPos clickedPos, CashierDeskBlockEntity cashierDesk) {
         if (pathGraph.hasNode(clickedPos)) {
             setConnectionStartNode(tag, clickedPos);
             player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_connection_start", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
         } else {
+            if (cashierDesk.getShopConfig().isPositionOccupied(clickedPos)) {
+                player.sendSystemMessage(Component.translatable("message.foodieshop.pos_already_occupied"));
+                return;
+            }
             pathGraph.addNode(clickedPos);
             player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_node_added", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
         }
