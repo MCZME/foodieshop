@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 
 import org.joml.Matrix4f;
 
@@ -226,11 +227,16 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
 
     @Override
     public int getViewDistance() {
-        return 16;
+        return 96;
     }
     
     @Override
     public boolean shouldRenderOffScreen(CashierDeskBlockEntity pBlockEntity) {
         return true;
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(CashierDeskBlockEntity blockEntity) {
+        return AABB.INFINITE;
     }
 }
