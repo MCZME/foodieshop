@@ -46,6 +46,8 @@ public record ResetLayoutPacket(BlockPos pos) implements CustomPacketPayload {
                             config.getPathGraph().getNodes().clear();
                             config.getPathGraph().getEdges().clear();
                         }
+                        config.getDeliveryBoxLocations().clear();
+                        config.getInventoryLocations().clear();
                         cashierDesk.setChanged();
                         level.sendBlockUpdated(packet.pos, level.getBlockState(packet.pos), level.getBlockState(packet.pos), 3);
                     }

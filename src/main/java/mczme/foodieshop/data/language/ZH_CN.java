@@ -87,6 +87,8 @@ public class ZH_CN extends LanguageProvider {
         add("gui.foodieshop.shop_config.validate", "验证配置");
         add("gui.foodieshop.shop_config.validation_results", "验证结果:");
         add("gui.foodieshop.shop_config.logs", "操作日志:");
+        add("gui.foodieshop.shop_config.reset_layout.confirm.title", "确认重置布局");
+        add("gui.foodieshop.shop_config.reset_layout.confirm.message", "你确定要重置所有布局设置吗？此操作无法撤销。");
 
         // GUI - 图例
         add("gui.foodieshop.shop_config.legend.table", "桌子");

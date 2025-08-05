@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -95,10 +96,19 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         // 特定选项卡的底部按钮
         if (this.currentTab == Tabs.LAYOUT) {
             this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.reset_layout"), (button) -> {
-                ResetLayoutPacket packet = new ResetLayoutPacket(this.blockEntity.getBlockPos());
-                if (Minecraft.getInstance().getConnection() != null) {
-                    Minecraft.getInstance().getConnection().send(packet);
-                }
+                this.minecraft.setScreen(new ConfirmScreen(
+                        (confirmed) -> {
+                            if (confirmed) {
+                                ResetLayoutPacket packet = new ResetLayoutPacket(this.blockEntity.getBlockPos());
+                                if (Minecraft.getInstance().getConnection() != null) {
+                                    Minecraft.getInstance().getConnection().send(packet);
+                                }
+                            }
+                            this.minecraft.setScreen(this);
+                        },
+                        Component.translatable("gui.foodieshop.shop_config.reset_layout.confirm.title"),
+                        Component.translatable("gui.foodieshop.shop_config.reset_layout.confirm.message")
+                ));
             })
                     .pos(this.leftPos + (this.imageWidth / 2) - 40, this.topPos + this.imageHeight - 25)
                     .size(80, 20)
