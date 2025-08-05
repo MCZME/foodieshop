@@ -23,9 +23,7 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.UUID;
 
 public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider {
@@ -41,12 +39,12 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 "",
                 "",
                 pos,
-                new ArrayList<>(), // inventoryLocations
-                new ArrayList<>(), // cashierLocations
+                new HashSet<>(), // inventoryLocations
+                new HashSet<>(), // cashierLocations
                 null,
                 null,
-                new ArrayList<>(),
-                new ArrayList<>(),
+                new HashSet<>(),
+                new HashSet<>(),
                 null
         );
     }
@@ -290,12 +288,12 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 "",
                 "",
                 this.getBlockPos(),
-                new ArrayList<>(), // inventoryLocations
-                new ArrayList<>(), // cashierLocations
+                new HashSet<>(), // inventoryLocations
+                new HashSet<>(), // cashierLocations
                 null,
                 null,
-                new ArrayList<>(),
-                new ArrayList<>(),
+                new HashSet<>(),
+                new HashSet<>(),
                 null
         );
         setChanged();
@@ -322,11 +320,11 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
     }
 
     public List<BlockPos> getInventoryPos() {
-        return this.shopConfig.getInventoryLocations();
+        return new ArrayList<>(this.shopConfig.getInventoryLocations());
     }
 
     public List<BlockPos> getCashBoxPos() {
-        return this.shopConfig.getCashierLocations();
+        return new ArrayList<>(this.shopConfig.getCashierLocations());
     }
 
     public boolean canEdit(Player player) {

@@ -3,8 +3,8 @@ package mczme.foodieshop.api.shop;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ShopConfig {
     private String shopId;
@@ -12,26 +12,26 @@ public class ShopConfig {
     private String ownerName;
     private String shopName;
     private BlockPos cashierDeskLocation;
-    private List<BlockPos> inventoryLocations;
-    private List<BlockPos> cashierLocations;
+    private Set<BlockPos> inventoryLocations;
+    private Set<BlockPos> cashierLocations;
     private BlockPos shopAreaPos1;
     private BlockPos shopAreaPos2;
-    private List<SeatInfo> seatLocations;
-    private List<TableInfo> tableLocations;
+    private Set<SeatInfo> seatLocations;
+    private Set<TableInfo> tableLocations;
     private PathGraph pathGraph;
 
-    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, List<BlockPos> inventoryLocations, List<BlockPos> cashierLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, PathGraph pathGraph) {
+    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, Set<BlockPos> inventoryLocations, Set<BlockPos> cashierLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, Set<SeatInfo> seatLocations, Set<TableInfo> tableLocations, PathGraph pathGraph) {
         this.shopId = shopId;
         this.shopOwnerUUID = shopOwnerUUID;
         this.ownerName = ownerName != null ? ownerName : "";
         this.shopName = shopName != null ? shopName : "";
         this.cashierDeskLocation = cashierDeskLocation;
-        this.inventoryLocations = inventoryLocations != null ? inventoryLocations : new ArrayList<>();
-        this.cashierLocations = cashierLocations != null ? cashierLocations : new ArrayList<>();
+        this.inventoryLocations = inventoryLocations != null ? inventoryLocations : new HashSet<>();
+        this.cashierLocations = cashierLocations != null ? cashierLocations : new HashSet<>();
         this.shopAreaPos1 = shopAreaPos1;
         this.shopAreaPos2 = shopAreaPos2;
-        this.seatLocations = seatLocations != null ? seatLocations : new ArrayList<>();
-        this.tableLocations = tableLocations != null ? tableLocations : new ArrayList<>();
+        this.seatLocations = seatLocations != null ? seatLocations : new HashSet<>();
+        this.tableLocations = tableLocations != null ? tableLocations : new HashSet<>();
         this.pathGraph = pathGraph != null ? pathGraph : new PathGraph();
     }
 
@@ -88,7 +88,7 @@ public class ShopConfig {
         String shopName = tag.getString("shopName");
         BlockPos cashierDeskLocation = NbtUtils.readBlockPos(tag, "cashierDeskLocation").orElse(BlockPos.ZERO);
 
-        List<BlockPos> inventoryLocations = new ArrayList<>();
+        Set<BlockPos> inventoryLocations = new HashSet<>();
         if (tag.contains("inventoryLocations", Tag.TAG_LIST)) {
             ListTag list = tag.getList("inventoryLocations", CompoundTag.TAG_INT_ARRAY);
             for (int i = 0; i < list.size(); i++) {
@@ -97,7 +97,7 @@ public class ShopConfig {
             }
         }
 
-        List<BlockPos> cashierLocations = new ArrayList<>();
+        Set<BlockPos> cashierLocations = new HashSet<>();
         if (tag.contains("cashierLocations", Tag.TAG_LIST)) {
             ListTag list = tag.getList("cashierLocations", CompoundTag.TAG_INT_ARRAY);
             for (int i = 0; i < list.size(); i++) {
@@ -109,13 +109,13 @@ public class ShopConfig {
         BlockPos shopAreaPos1 = NbtUtils.readBlockPos(tag, "shopAreaPos1").orElse(null);
         BlockPos shopAreaPos2 = NbtUtils.readBlockPos(tag, "shopAreaPos2").orElse(null);
 
-        List<SeatInfo> seatLocations = new ArrayList<>();
+        Set<SeatInfo> seatLocations = new HashSet<>();
         ListTag seatList = tag.getList("seatLocations", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < seatList.size(); i++) {
             seatLocations.add(SeatInfo.fromNbt(seatList.getCompound(i)));
         }
 
-        List<TableInfo> tableLocations = new ArrayList<>();
+        Set<TableInfo> tableLocations = new HashSet<>();
         ListTag tableList = tag.getList("tableLocations", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < tableList.size(); i++) {
             tableLocations.add(TableInfo.fromNbt(tableList.getCompound(i)));
@@ -166,19 +166,19 @@ public class ShopConfig {
         this.cashierDeskLocation = cashierDeskLocation;
     }
 
-    public List<BlockPos> getInventoryLocations() {
+    public Set<BlockPos> getInventoryLocations() {
         return inventoryLocations;
     }
 
-    public void setInventoryLocations(List<BlockPos> inventoryLocations) {
+    public void setInventoryLocations(Set<BlockPos> inventoryLocations) {
         this.inventoryLocations = inventoryLocations;
     }
 
-    public List<BlockPos> getCashierLocations() {
+    public Set<BlockPos> getCashierLocations() {
         return cashierLocations;
     }
 
-    public void setCashierLocations(List<BlockPos> cashierLocations) {
+    public void setCashierLocations(Set<BlockPos> cashierLocations) {
         this.cashierLocations = cashierLocations;
     }
 
@@ -198,19 +198,19 @@ public class ShopConfig {
         this.shopAreaPos2 = shopAreaPos2;
     }
 
-    public List<SeatInfo> getSeatLocations() {
+    public Set<SeatInfo> getSeatLocations() {
         return seatLocations;
     }
 
-    public void setSeatLocations(List<SeatInfo> seatLocations) {
+    public void setSeatLocations(Set<SeatInfo> seatLocations) {
         this.seatLocations = seatLocations;
     }
 
-    public List<TableInfo> getTableLocations() {
+    public Set<TableInfo> getTableLocations() {
         return tableLocations;
     }
 
-    public void setTableLocations(List<TableInfo> tableLocations) {
+    public void setTableLocations(Set<TableInfo> tableLocations) {
         this.tableLocations = tableLocations;
     }
 
