@@ -203,7 +203,8 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         renderTables(guiGraphics, config, center);
         renderSeats(guiGraphics, config, center);
         renderInventories(guiGraphics, config, center);
-        renderCashiers(guiGraphics, config, center);
+        renderDeliveryBoxes(guiGraphics, config, center);
+        renderCashierDesk(guiGraphics, config, center);
 
         guiGraphics.disableScissor();
     }
@@ -261,12 +262,24 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         }
     }
 
-    private void renderCashiers(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
-        for (BlockPos cashierPos : config.getCashierLocations()) {
-            Vector2d pos = worldToScreen(cashierPos, center);
+    private void renderDeliveryBoxes(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+        for (BlockPos deliveryBoxPos : config.getDeliveryBoxLocations()) {
+            Vector2d pos = worldToScreen(deliveryBoxPos, center);
             float size = zoom;
-            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFD700);
-            if (selectedElement != null && selectedElement.type == ElementType.CASHIER && selectedElement.element.equals(cashierPos)) {
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFA500); // Orange for delivery boxes
+            if (selectedElement != null && selectedElement.type == ElementType.DELIVERY_BOX && selectedElement.element.equals(deliveryBoxPos)) {
+                guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
+            }
+        }
+    }
+
+    private void renderCashierDesk(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
+        BlockPos cashierDeskPos = config.getCashierDeskLocation();
+        if (cashierDeskPos != null) {
+            Vector2d pos = worldToScreen(cashierDeskPos, center);
+            float size = zoom;
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFD700); // Gold for cashier desk
+            if (selectedElement != null && selectedElement.type == ElementType.CASHIER_DESK && selectedElement.element.equals(cashierDeskPos)) {
                 guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
@@ -345,10 +358,18 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                     return true;
                 }
             }
-            for (BlockPos cashierPos : config.getCashierLocations()) {
-                Vector2d pos = worldToScreen(cashierPos, center);
+            for (BlockPos deliveryBoxPos : config.getDeliveryBoxLocations()) {
+                Vector2d pos = worldToScreen(deliveryBoxPos, center);
                 if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
-                    selectedElement = new SelectedElement(ElementType.CASHIER, cashierPos);
+                    selectedElement = new SelectedElement(ElementType.DELIVERY_BOX, deliveryBoxPos);
+                    return true;
+                }
+            }
+            BlockPos cashierDeskPos = config.getCashierDeskLocation();
+            if (cashierDeskPos != null) {
+                Vector2d pos = worldToScreen(cashierDeskPos, center);
+                if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
+                    selectedElement = new SelectedElement(ElementType.CASHIER_DESK, cashierDeskPos);
                     return true;
                 }
             }
@@ -413,7 +434,8 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         TABLE,
         WAYPOINT,
         INVENTORY,
-        CASHIER
+        DELIVERY_BOX,
+        CASHIER_DESK
     }
 
     private record SelectedElement(ElementType type, Object element) {

@@ -64,7 +64,7 @@ public class ZH_CN extends LanguageProvider {
 
         // 模式
         add("mode.foodieshop.inventory", "库存");
-        add("mode.foodieshop.cash_box", "钱箱");
+        add("mode.foodieshop.delivery_box", "收货箱");
 
         add("message.foodieshop.shop_inventory_pen.mode_switched", "切换到 %s 模式");
         add("message.foodieshop.shop_inventory_pen.bound_to_cashier_desk", "已绑定到收银台: %s");
@@ -72,8 +72,8 @@ public class ZH_CN extends LanguageProvider {
         add("message.foodieshop.shop_inventory_pen.cashier_desk_not_found", "绑定的收银台未找到");
         add("message.foodieshop.shop_inventory_pen.inventory_pos_added", "库存位置已添加: %s");
         add("message.foodieshop.shop_inventory_pen.inventory_pos_removed", "库存位置已移除: %s");
-        add("message.foodieshop.shop_inventory_pen.cash_box_pos_added", "收银台位置已添加: %s");
-        add("message.foodieshop.shop_inventory_pen.cash_box_pos_removed", "收银台位置已移除: %s");
+        add("message.foodieshop.shop_inventory_pen.delivery_box_pos_added", "收货箱位置已添加: %s");
+        add("message.foodieshop.shop_inventory_pen.delivery_box_pos_removed", "收货箱位置已移除: %s");
         add("message.foodieshop.shop_inventory_pen.pos_selected", "已选择位置: %s, 再次右键点击以移除");
         add("message.foodieshop.cannot_edit", "你没有权限编辑这家商店");
 

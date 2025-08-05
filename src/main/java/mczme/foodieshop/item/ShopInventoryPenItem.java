@@ -52,9 +52,9 @@ public class ShopInventoryPenItem extends ShopEditPenItem {
                     player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.inventory_pos_removed", clickedPos.toShortString()));
                 }
             } else {
-                removed = cashierDesk.removeCashBoxPos(clickedPos);
+                removed = cashierDesk.removeDeliveryBoxPos(clickedPos);
                 if (removed) {
-                    player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.cash_box_pos_removed", clickedPos.toShortString()));
+                    player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.delivery_box_pos_removed", clickedPos.toShortString()));
                 }
             }
             if (removed) {
@@ -64,7 +64,7 @@ public class ShopInventoryPenItem extends ShopEditPenItem {
             // Add or Select logic
             boolean isAlreadyInList = (mode == 0) ?
                     cashierDesk.getInventoryPos().contains(clickedPos) :
-                    cashierDesk.getCashBoxPos().contains(clickedPos);
+                    cashierDesk.getDeliveryBoxPos().contains(clickedPos);
 
             if (isAlreadyInList) {
                 setSelectedPos(stack, clickedPos);
@@ -77,9 +77,9 @@ public class ShopInventoryPenItem extends ShopEditPenItem {
                         player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.inventory_pos_added", clickedPos.toShortString()));
                     }
                 } else {
-                    added = cashierDesk.addCashBoxPos(clickedPos, player);
+                    added = cashierDesk.addDeliveryBoxPos(clickedPos, player);
                     if (added) {
-                        player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.cash_box_pos_added", clickedPos.toShortString()));
+                        player.sendSystemMessage(Component.translatable("message.foodieshop.shop_inventory_pen.delivery_box_pos_added", clickedPos.toShortString()));
                     }
                 }
                 if (added) {
@@ -101,7 +101,7 @@ public class ShopInventoryPenItem extends ShopEditPenItem {
     }
 
     private Component getModeName(int mode) {
-        return mode == 0 ? Component.translatable("mode.foodieshop.inventory") : Component.translatable("mode.foodieshop.cash_box");
+        return mode == 0 ? Component.translatable("mode.foodieshop.inventory") : Component.translatable("mode.foodieshop.delivery_box");
     }
 
     private void setSelectedPos(ItemStack stack, BlockPos pos) {

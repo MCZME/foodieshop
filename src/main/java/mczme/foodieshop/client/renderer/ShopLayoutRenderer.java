@@ -143,7 +143,7 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
     private void renderCashier(ShopConfig config, PoseStack poseStack,
                                MultiBufferSource bufferSource, BlockPos origin) {
         VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
-        for (BlockPos pos : config.getCashierLocations()) {
+        for (BlockPos pos : config.getDeliveryBoxLocations()) {
             renderMarker(poseStack, consumer, pos, 1.0F, 1.0F, 0.0F, origin); // Light Blue
         }
     }

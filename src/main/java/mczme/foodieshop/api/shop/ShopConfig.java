@@ -13,21 +13,21 @@ public class ShopConfig {
     private String shopName;
     private BlockPos cashierDeskLocation;
     private Set<BlockPos> inventoryLocations;
-    private Set<BlockPos> cashierLocations;
+    private Set<BlockPos> deliveryBoxLocations;
     private BlockPos shopAreaPos1;
     private BlockPos shopAreaPos2;
     private Set<SeatInfo> seatLocations;
     private Set<TableInfo> tableLocations;
     private PathGraph pathGraph;
 
-    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, Set<BlockPos> inventoryLocations, Set<BlockPos> cashierLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, Set<SeatInfo> seatLocations, Set<TableInfo> tableLocations, PathGraph pathGraph) {
+    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, Set<BlockPos> inventoryLocations, Set<BlockPos> deliveryBoxLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, Set<SeatInfo> seatLocations, Set<TableInfo> tableLocations, PathGraph pathGraph) {
         this.shopId = shopId;
         this.shopOwnerUUID = shopOwnerUUID;
         this.ownerName = ownerName != null ? ownerName : "";
         this.shopName = shopName != null ? shopName : "";
         this.cashierDeskLocation = cashierDeskLocation;
         this.inventoryLocations = inventoryLocations != null ? inventoryLocations : new HashSet<>();
-        this.cashierLocations = cashierLocations != null ? cashierLocations : new HashSet<>();
+        this.deliveryBoxLocations = deliveryBoxLocations != null ? deliveryBoxLocations : new HashSet<>();
         this.shopAreaPos1 = shopAreaPos1;
         this.shopAreaPos2 = shopAreaPos2;
         this.seatLocations = seatLocations != null ? seatLocations : new HashSet<>();
@@ -49,12 +49,12 @@ public class ShopConfig {
             }
             tag.put("inventoryLocations", list);
         }
-        if (this.cashierLocations != null) {
+        if (this.deliveryBoxLocations != null) {
             ListTag list = new ListTag();
-            for (BlockPos pos : this.cashierLocations) {
+            for (BlockPos pos : this.deliveryBoxLocations) {
                 list.add(NbtUtils.writeBlockPos(pos));
             }
-            tag.put("cashierLocations", list);
+            tag.put("deliveryBoxLocations", list);
         }
         if (this.shopAreaPos1 != null) {
             tag.put("shopAreaPos1", NbtUtils.writeBlockPos(this.shopAreaPos1));
@@ -97,12 +97,12 @@ public class ShopConfig {
             }
         }
 
-        Set<BlockPos> cashierLocations = new HashSet<>();
-        if (tag.contains("cashierLocations", Tag.TAG_LIST)) {
-            ListTag list = tag.getList("cashierLocations", CompoundTag.TAG_INT_ARRAY);
+        Set<BlockPos> deliveryBoxLocations = new HashSet<>();
+        if (tag.contains("deliveryBoxLocations", Tag.TAG_LIST)) {
+            ListTag list = tag.getList("deliveryBoxLocations", CompoundTag.TAG_INT_ARRAY);
             for (int i = 0; i < list.size(); i++) {
                 int[] posTag = list.getIntArray(i);
-                cashierLocations.add(new BlockPos(posTag[0], posTag[1], posTag[2]));
+                deliveryBoxLocations.add(new BlockPos(posTag[0], posTag[1], posTag[2]));
             }
         }
 
@@ -123,7 +123,7 @@ public class ShopConfig {
 
         PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
-        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryLocations, cashierLocations, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
+        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryLocations, deliveryBoxLocations, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
     }
 
     public String getShopId() {
@@ -174,12 +174,12 @@ public class ShopConfig {
         this.inventoryLocations = inventoryLocations;
     }
 
-    public Set<BlockPos> getCashierLocations() {
-        return cashierLocations;
+    public Set<BlockPos> getDeliveryBoxLocations() {
+        return deliveryBoxLocations;
     }
 
-    public void setCashierLocations(Set<BlockPos> cashierLocations) {
-        this.cashierLocations = cashierLocations;
+    public void setDeliveryBoxLocations(Set<BlockPos> deliveryBoxLocations) {
+        this.deliveryBoxLocations = deliveryBoxLocations;
     }
 
     public BlockPos getShopAreaPos1() {
@@ -229,7 +229,7 @@ public class ShopConfig {
         if (this.inventoryLocations.contains(pos)) {
             return true;
         }
-        if (this.cashierLocations.contains(pos)) {
+        if (this.deliveryBoxLocations.contains(pos)) {
             return true;
         }
         for (SeatInfo seat : this.seatLocations) {

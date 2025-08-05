@@ -40,7 +40,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 "",
                 pos,
                 new HashSet<>(), // inventoryLocations
-                new HashSet<>(), // cashierLocations
+                new HashSet<>(), // deliveryBoxLocations
                 null,
                 null,
                 new HashSet<>(),
@@ -227,7 +227,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         return removed;
     }
 
-    public boolean addCashBoxPos(BlockPos pos, Player player) {
+    public boolean addDeliveryBoxPos(BlockPos pos, Player player) {
         if (!isPosInShopArea(pos)) {
             player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
             return false;
@@ -236,13 +236,13 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
             player.sendSystemMessage(Component.translatable("message.foodieshop.pos_already_occupied"));
             return false;
         }
-        this.shopConfig.getCashierLocations().add(pos);
+        this.shopConfig.getDeliveryBoxLocations().add(pos);
         setChanged();
         return true;
     }
 
-    public boolean removeCashBoxPos(BlockPos pos) {
-        boolean removed = this.shopConfig.getCashierLocations().remove(pos);
+    public boolean removeDeliveryBoxPos(BlockPos pos) {
+        boolean removed = this.shopConfig.getDeliveryBoxLocations().remove(pos);
         if (removed) {
             setChanged();
         }
@@ -289,7 +289,7 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 "",
                 this.getBlockPos(),
                 new HashSet<>(), // inventoryLocations
-                new HashSet<>(), // cashierLocations
+                new HashSet<>(), // deliveryBoxLocations
                 null,
                 null,
                 new HashSet<>(),
@@ -323,8 +323,8 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         return new ArrayList<>(this.shopConfig.getInventoryLocations());
     }
 
-    public List<BlockPos> getCashBoxPos() {
-        return new ArrayList<>(this.shopConfig.getCashierLocations());
+    public List<BlockPos> getDeliveryBoxPos() {
+        return new ArrayList<>(this.shopConfig.getDeliveryBoxLocations());
     }
 
     public boolean canEdit(Player player) {
