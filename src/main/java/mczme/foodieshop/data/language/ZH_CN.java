@@ -26,6 +26,7 @@ public class ZH_CN extends LanguageProvider {
 
         // 物品
         addItem(ModItems.DINER_BLUEPRINT_PEN, "店铺蓝图笔");
+        addItem(ModItems.SHOP_INVENTORY_PEN, "店铺库存笔");
         addItem(ModItems.SHOP_PATH_PEN, "店铺路径笔");
 
         // 信息
@@ -60,6 +61,21 @@ public class ZH_CN extends LanguageProvider {
         add("message.foodieshop.diner_blueprint_pen.wrong_type_for_selection", "无法在当前模式下选择此类型的方块");
         add("message.foodieshop.diner_blueprint_pen.seat_not_adjacent_to_table", "绑定失败：座位必须与桌子相邻");
         add("message.foodieshop.diner_blueprint_pen.tables_not_adjacent", "组合失败：桌子必须相邻");
+
+        // 模式
+        add("mode.foodieshop.inventory", "库存");
+        add("mode.foodieshop.cash_box", "钱箱");
+
+        add("message.foodieshop.shop_inventory_pen.mode_switched", "切换到 %s 模式");
+        add("message.foodieshop.shop_inventory_pen.bound_to_cashier_desk", "已绑定到收银台: %s");
+        add("message.foodieshop.shop_inventory_pen.not_bound", "请先右键点击一个收银台来绑定");
+        add("message.foodieshop.shop_inventory_pen.cashier_desk_not_found", "绑定的收银台未找到");
+        add("message.foodieshop.shop_inventory_pen.inventory_pos_added", "库存位置已添加: %s");
+        add("message.foodieshop.shop_inventory_pen.inventory_pos_removed", "库存位置已移除: %s");
+        add("message.foodieshop.shop_inventory_pen.cash_box_pos_added", "收银台位置已添加: %s");
+        add("message.foodieshop.shop_inventory_pen.cash_box_pos_removed", "收银台位置已移除: %s");
+        add("message.foodieshop.shop_inventory_pen.pos_selected", "已选择位置: %s, 再次右键点击以移除");
+        add("message.foodieshop.cannot_edit", "你没有权限编辑这家商店");
 
         // GUI
         add("gui.foodieshop.shop_config.tab.general", "基础设置");

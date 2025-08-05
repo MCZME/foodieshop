@@ -12,22 +12,22 @@ public class ShopConfig {
     private String ownerName;
     private String shopName;
     private BlockPos cashierDeskLocation;
-    private BlockPos menuContainerPos;
-    private BlockPos cashBoxPos;
+    private List<BlockPos> inventoryPos;
+    private List<BlockPos> cashBoxPos;
     private BlockPos shopAreaPos1;
     private BlockPos shopAreaPos2;
     private List<SeatInfo> seatLocations;
     private List<TableInfo> tableLocations;
     private PathGraph pathGraph;
 
-    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, BlockPos menuContainerPos, BlockPos cashBoxPos, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, PathGraph pathGraph) {
+    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, List<BlockPos> inventoryPos, List<BlockPos> cashBoxPos, BlockPos shopAreaPos1, BlockPos shopAreaPos2, List<SeatInfo> seatLocations, List<TableInfo> tableLocations, PathGraph pathGraph) {
         this.shopId = shopId;
         this.shopOwnerUUID = shopOwnerUUID;
         this.ownerName = ownerName != null ? ownerName : "";
         this.shopName = shopName != null ? shopName : "";
         this.cashierDeskLocation = cashierDeskLocation;
-        this.menuContainerPos = menuContainerPos;
-        this.cashBoxPos = cashBoxPos;
+        this.inventoryPos = inventoryPos != null ? inventoryPos : new ArrayList<>();
+        this.cashBoxPos = cashBoxPos != null ? cashBoxPos : new ArrayList<>();
         this.shopAreaPos1 = shopAreaPos1;
         this.shopAreaPos2 = shopAreaPos2;
         this.seatLocations = seatLocations != null ? seatLocations : new ArrayList<>();
@@ -42,11 +42,19 @@ public class ShopConfig {
         tag.putString("ownerName", this.ownerName);
         tag.putString("shopName", this.shopName);
         tag.put("cashierDeskLocation", NbtUtils.writeBlockPos(this.cashierDeskLocation));
-        if (this.menuContainerPos != null) {
-            tag.put("menuContainerPos", NbtUtils.writeBlockPos(this.menuContainerPos));
+        if (this.inventoryPos != null) {
+            ListTag list = new ListTag();
+            for (BlockPos pos : this.inventoryPos) {
+                list.add(NbtUtils.writeBlockPos(pos));
+            }
+            tag.put("inventoryPos", list);
         }
         if (this.cashBoxPos != null) {
-            tag.put("cashBoxPos", NbtUtils.writeBlockPos(this.cashBoxPos));
+            ListTag list = new ListTag();
+            for (BlockPos pos : this.cashBoxPos) {
+                list.add(NbtUtils.writeBlockPos(pos));
+            }
+            tag.put("cashBoxPos", list);
         }
         if (this.shopAreaPos1 != null) {
             tag.put("shopAreaPos1", NbtUtils.writeBlockPos(this.shopAreaPos1));
@@ -79,8 +87,29 @@ public class ShopConfig {
         String ownerName = tag.getString("ownerName");
         String shopName = tag.getString("shopName");
         BlockPos cashierDeskLocation = NbtUtils.readBlockPos(tag, "cashierDeskLocation").orElse(BlockPos.ZERO);
-        BlockPos menuContainerPos = NbtUtils.readBlockPos(tag, "menuContainerPos").orElse(null);
-        BlockPos cashBoxPos = NbtUtils.readBlockPos(tag, "cashBoxPos").orElse(null);
+
+        List<BlockPos> inventoryPos = new ArrayList<>();
+        if (tag.contains("inventoryPos", Tag.TAG_LIST)) {
+            ListTag list = tag.getList("inventoryPos", CompoundTag.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag posTag = list.getCompound(i);
+                inventoryPos.add(new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z")));
+            }
+        } else if (tag.contains("menuContainerPos", CompoundTag.TAG_COMPOUND)) { // Legacy support
+            NbtUtils.readBlockPos(tag, "menuContainerPos").ifPresent(inventoryPos::add);
+        }
+
+        List<BlockPos> cashBoxPos = new ArrayList<>();
+        if (tag.contains("cashBoxPos", Tag.TAG_LIST)) {
+            ListTag list = tag.getList("cashBoxPos", CompoundTag.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag posTag = list.getCompound(i);
+                cashBoxPos.add(new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z")));
+            }
+        } else if (tag.contains("cashBoxPos", CompoundTag.TAG_COMPOUND)) { // Legacy support
+            NbtUtils.readBlockPos(tag, "cashBoxPos").ifPresent(cashBoxPos::add);
+        }
+
         BlockPos shopAreaPos1 = NbtUtils.readBlockPos(tag, "shopAreaPos1").orElse(null);
         BlockPos shopAreaPos2 = NbtUtils.readBlockPos(tag, "shopAreaPos2").orElse(null);
 
@@ -98,7 +127,7 @@ public class ShopConfig {
 
         PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
-        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, menuContainerPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
+        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryPos, cashBoxPos, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
     }
 
     public String getShopId() {
@@ -141,19 +170,19 @@ public class ShopConfig {
         this.cashierDeskLocation = cashierDeskLocation;
     }
 
-    public BlockPos getMenuContainerPos() {
-        return menuContainerPos;
+    public List<BlockPos> getInventoryPos() {
+        return inventoryPos;
     }
 
-    public void setMenuContainerPos(BlockPos menuContainerPos) {
-        this.menuContainerPos = menuContainerPos;
+    public void setInventoryPos(List<BlockPos> inventoryPos) {
+        this.inventoryPos = inventoryPos;
     }
 
-    public BlockPos getCashBoxPos() {
+    public List<BlockPos> getCashBoxPos() {
         return cashBoxPos;
     }
 
-    public void setCashBoxPos(BlockPos cashBoxPos) {
+    public void setCashBoxPos(List<BlockPos> cashBoxPos) {
         this.cashBoxPos = cashBoxPos;
     }
 

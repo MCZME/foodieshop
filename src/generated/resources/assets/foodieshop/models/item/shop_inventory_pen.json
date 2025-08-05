@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "foodieshop:item/shop_inventory_pen"
+  }
+}

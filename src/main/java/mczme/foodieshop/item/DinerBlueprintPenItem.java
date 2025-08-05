@@ -1,16 +1,13 @@
 package mczme.foodieshop.item;
 
-import mczme.foodieshop.block.CashierDeskBlock;
 import mczme.foodieshop.block.blockentity.CashierDeskBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
@@ -18,8 +15,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 
-public class DinerBlueprintPenItem extends Item {
-    public static final String TAG_SHOP_POS = "shop_pos";
+public class DinerBlueprintPenItem extends ShopEditPenItem {
     public static final String TAG_SETUP_MODE = "setup_mode";
     public static final String TAG_SELECTED_POS = "selected_pos";
 
@@ -28,141 +24,72 @@ public class DinerBlueprintPenItem extends Item {
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
-        Player player = context.getPlayer();
-        if (player == null || context.getHand() != InteractionHand.MAIN_HAND) {
-            return super.useOn(context);
+    protected InteractionResult handleInteraction(Player player, ItemStack stack, CashierDeskBlockEntity cashierDesk, BlockPos clickedPos, Level level) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        SetupMode currentMode = SetupMode.valueOf(tag.getString(TAG_SETUP_MODE).isEmpty() ? SetupMode.SHOP_AREA.name() : tag.getString(TAG_SETUP_MODE));
+
+        if (currentMode != SetupMode.SHOP_AREA && !cashierDesk.isShopAreaSet()) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.shop_area_not_set"));
+            return InteractionResult.FAIL;
         }
 
-        Level level = context.getLevel();
-        BlockPos clickedPos = context.getClickedPos();
-        ItemStack itemStack = context.getItemInHand();
-
-        if (player.isShiftKeyDown()) {
-            if (level.getBlockState(clickedPos).getBlock() instanceof CashierDeskBlock) {
-                if (!level.isClientSide()) {
-                    CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-                    tag.putLong(TAG_SHOP_POS, clickedPos.asLong());
-                    tag.putString(TAG_SETUP_MODE, SetupMode.SHOP_AREA.name());
-                    tag.remove(TAG_SELECTED_POS); // 重新绑定时清除选择
-                    itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-                    player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.bind_success", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                }
-                return InteractionResult.sidedSuccess(level.isClientSide());
-            } else {
-                if (switchMode(itemStack, player)) {
-                    return InteractionResult.sidedSuccess(level.isClientSide());
-                }
-            }
-        }
-
-        CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        if (tag.contains(TAG_SHOP_POS)) {
-            BlockPos shopPos = BlockPos.of(tag.getLong(TAG_SHOP_POS));
-            if (!level.isClientSide() && level.getBlockEntity(shopPos) instanceof CashierDeskBlockEntity cashierDesk) {
-                SetupMode currentMode = SetupMode.valueOf(tag.getString(TAG_SETUP_MODE).isEmpty() ? SetupMode.SHOP_AREA.name() : tag.getString(TAG_SETUP_MODE));
-
-                if (currentMode != SetupMode.SHOP_AREA && !cashierDesk.isShopAreaSet()) {
-                    player.sendSystemMessage(Component.translatable("message.foodieshop.shop_area_not_set"));
-                    return InteractionResult.sidedSuccess(level.isClientSide());
-                }
-
-                handleInteraction(player, itemStack, cashierDesk, clickedPos, currentMode);
-                level.sendBlockUpdated(shopPos, level.getBlockState(shopPos), level.getBlockState(shopPos), 3);
-            }
-            return InteractionResult.sidedSuccess(level.isClientSide());
-        }
-
-        return super.useOn(context);
-    }
-
-    /**
-     * 处理玩家使用蓝图笔时的主要交互逻辑。
-     * @param player 交互的玩家
-     * @param itemStack 玩家手中的蓝图笔
-     * @param cashierDesk 绑定的收银台方块实体
-     * @param clickedPos 玩家点击的方块位置
-     * @param mode 当前的设置模式 (座位/桌子)
-     */
-    private void handleInteraction(Player player, ItemStack itemStack, CashierDeskBlockEntity cashierDesk, BlockPos clickedPos, SetupMode mode) {
-        CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         Optional<BlockPos> selectedPosOpt = getSelectedPos(tag);
 
-        if (mode == SetupMode.SHOP_AREA) {
+        if (currentMode == SetupMode.SHOP_AREA) {
             handleShopAreaInteraction(player, cashierDesk, clickedPos);
-            return;
-        }
-
-        if (selectedPosOpt.isPresent()) {
-            BlockPos selectedPos = selectedPosOpt.get();
-            if (selectedPos.equals(clickedPos)) {
-                // 再次点击同一方块：移除
-                if (mode == SetupMode.SEAT) {
-                    if (cashierDesk.removeSeat(clickedPos)) {
-                        player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.remove_seat", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                    }
-                } else if (mode == SetupMode.TABLE) {
-                    if (cashierDesk.removeTable(clickedPos)) {
-                        player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.remove_table", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                    }
-                }
-                clearSelectedPos(tag);
-            } else {
-                // 点击不同方块：执行操作
-                if (mode == SetupMode.SEAT) {
-                    if (cashierDesk.getTableAt(clickedPos).isPresent()) {
-                        if (cashierDesk.bindSeatToTable(selectedPos, clickedPos, player)) {
-                            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.seat_bound_to_table", selectedPos.getX(), selectedPos.getY(), selectedPos.getZ(), clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                        }
-                    } else {
-                        player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.selection_cancelled"));
-                    }
-                } else if (mode == SetupMode.TABLE) {
-                    if (cashierDesk.getTableAt(clickedPos).isPresent()) {
-                        if (cashierDesk.combineTables(selectedPos, clickedPos, player)) {
-                            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.tables_combined", selectedPos.getX(), selectedPos.getY(), selectedPos.getZ(), clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                        }
-                    } else {
-                        player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.selection_cancelled"));
-                    }
-                }
-                clearSelectedPos(tag);
-            }
+        } else if (selectedPosOpt.isPresent()) {
+            handleInteractionWithSelection(player, tag, cashierDesk, clickedPos, currentMode, selectedPosOpt.get());
         } else {
-            // 没有方块被选中：进行选择或添加
-            boolean isSeat = cashierDesk.getSeatAt(clickedPos).isPresent();
-            boolean isTable = cashierDesk.getTableAt(clickedPos).isPresent();
-
-            if ((mode == SetupMode.SEAT && isSeat) || (mode == SetupMode.TABLE && isTable)) {
-                // 选择已存在的方块
-                setSelectedPos(tag, clickedPos);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.selected", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-            } else if (!isSeat && !isTable) {
-                // 添加新方块
-                if (mode == SetupMode.SEAT) {
-                    if (cashierDesk.addSeat(clickedPos, player)) {
-                        player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.add_seat", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                    }
-                } else if (mode == SetupMode.TABLE) {
-                    if (cashierDesk.addTable(clickedPos, player)) {
-                        player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.add_table", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
-                    }
-                }
-            } else {
-                // 尝试在桌子模式下选择座位，或反之
-                 player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.wrong_type_for_selection"));
-            }
+            handleInteractionWithoutSelection(player, tag, cashierDesk, clickedPos, currentMode);
         }
-        itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        cashierDesk.setChanged();
+
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        return InteractionResult.SUCCESS;
     }
 
-    /**
-     * 处理商店区域设置的交互逻辑。
-     * @param player 交互的玩家
-     * @param cashierDesk 绑定的收银台方块实体
-     * @param pos 玩家点击的方块位置
-     */
+    private void handleInteractionWithSelection(Player player, CompoundTag tag, CashierDeskBlockEntity cashierDesk, BlockPos clickedPos, SetupMode mode, BlockPos selectedPos) {
+        if (selectedPos.equals(clickedPos)) {
+            // Remove
+            if (mode == SetupMode.SEAT && cashierDesk.removeSeat(clickedPos)) {
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.remove_seat", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+            } else if (mode == SetupMode.TABLE && cashierDesk.removeTable(clickedPos)) {
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.remove_table", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+            }
+        } else {
+            // Operate
+            if (mode == SetupMode.SEAT && cashierDesk.getTableAt(clickedPos).isPresent()) {
+                if (cashierDesk.bindSeatToTable(selectedPos, clickedPos, player)) {
+                    player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.seat_bound_to_table", selectedPos.getX(), selectedPos.getY(), selectedPos.getZ(), clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+                }
+            } else if (mode == SetupMode.TABLE && cashierDesk.getTableAt(clickedPos).isPresent()) {
+                if (cashierDesk.combineTables(selectedPos, clickedPos, player)) {
+                    player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.tables_combined", selectedPos.getX(), selectedPos.getY(), selectedPos.getZ(), clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+                }
+            } else {
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.selection_cancelled"));
+            }
+        }
+        clearSelectedPos(tag);
+    }
+
+    private void handleInteractionWithoutSelection(Player player, CompoundTag tag, CashierDeskBlockEntity cashierDesk, BlockPos clickedPos, SetupMode mode) {
+        boolean isSeat = cashierDesk.getSeatAt(clickedPos).isPresent();
+        boolean isTable = cashierDesk.getTableAt(clickedPos).isPresent();
+
+        if ((mode == SetupMode.SEAT && isSeat) || (mode == SetupMode.TABLE && isTable)) {
+            setSelectedPos(tag, clickedPos);
+            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.selected", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+        } else if (!isSeat && !isTable) {
+            if (mode == SetupMode.SEAT && cashierDesk.addSeat(clickedPos, player)) {
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.add_seat", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+            } else if (mode == SetupMode.TABLE && cashierDesk.addTable(clickedPos, player)) {
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.add_table", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+            }
+        } else {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.wrong_type_for_selection"));
+        }
+    }
+
     private void handleShopAreaInteraction(Player player, CashierDeskBlockEntity cashierDesk, BlockPos pos) {
         boolean willSetPos1 = cashierDesk.getShopConfig().getShopAreaPos1() == null || cashierDesk.getShopConfig().getShopAreaPos2() != null;
         cashierDesk.setShopAreaPos(pos);
@@ -173,46 +100,48 @@ public class DinerBlueprintPenItem extends Item {
                 player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.set_area_pos2", pos.getX(), pos.getY(), pos.getZ()));
             } else {
                 cashierDesk.getShopConfig().setShopAreaPos2(null);
-                cashierDesk.setChanged();
                 player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.area_invalid_cashier_not_in"));
             }
         }
     }
 
-
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        ItemStack itemStack = player.getItemInHand(hand);
-        if (player.isShiftKeyDown() && hand == InteractionHand.MAIN_HAND) {
-            if (switchMode(itemStack, player)) {
-                return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
-            }
+    protected InteractionResultHolder<ItemStack> handleShiftRightClickInAir(Player player, ItemStack stack) {
+        if (switchMode(stack, player)) {
+            return InteractionResultHolder.sidedSuccess(stack, player.level().isClientSide());
         }
-        return super.use(level, player, hand);
+        return InteractionResultHolder.pass(stack);
     }
 
-    /**
-     * 切换设置模式。
-     * @return 如果成功切换模式则返回 true，否则 false。
-     */
+    @Override
+    protected InteractionResult handleShiftRightClickOnBlock(UseOnContext context) {
+        if (switchMode(context.getItemInHand(), context.getPlayer())) {
+            return InteractionResult.sidedSuccess(context.getLevel().isClientSide());
+        }
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    protected void onShopPosSet(CompoundTag tag, Player player) {
+        tag.putString(TAG_SETUP_MODE, SetupMode.SHOP_AREA.name());
+        tag.remove(TAG_SELECTED_POS); // Clear selection on rebind
+    }
+
     private boolean switchMode(ItemStack itemStack, Player player) {
         CompoundTag tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        if (tag.contains(TAG_SHOP_POS)) {
-            if (!player.level().isClientSide()) {
-                // 切换模式时清除选择
-                clearSelectedPos(tag);
-                SetupMode currentMode = SetupMode
-                        .valueOf(tag.getString(TAG_SETUP_MODE).isEmpty() ? SetupMode.SHOP_AREA.name()
-                                : tag.getString(TAG_SETUP_MODE));
-                SetupMode nextMode = currentMode.next();
-                tag.putString(TAG_SETUP_MODE, nextMode.name());
-                itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.switch_mode",
-                        Component.translatable("setup_mode.foodieshop." + nextMode.name().toLowerCase())));
-            }
-            return true;
+        if (!tag.contains(TAG_SHOP_POS)) {
+            return false;
         }
-        return false;
+
+        if (!player.level().isClientSide()) {
+            clearSelectedPos(tag);
+            SetupMode currentMode = SetupMode.valueOf(tag.getString(TAG_SETUP_MODE).isEmpty() ? SetupMode.SHOP_AREA.name() : tag.getString(TAG_SETUP_MODE));
+            SetupMode nextMode = currentMode.next();
+            tag.putString(TAG_SETUP_MODE, nextMode.name());
+            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.switch_mode", Component.translatable("setup_mode.foodieshop." + nextMode.name().toLowerCase())));
+        }
+        return true;
     }
 
     /**

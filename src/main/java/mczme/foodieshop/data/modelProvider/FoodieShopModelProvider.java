@@ -17,6 +17,7 @@ public class FoodieShopModelProvider extends ItemModelProvider {
     protected void registerModels() {
         basicItem(ModItems.DINER_BLUEPRINT_PEN.get());
         basicItem(ModItems.SHOP_PATH_PEN.get());
+        basicItem(ModItems.SHOP_INVENTORY_PEN.get());
     }
 
 }

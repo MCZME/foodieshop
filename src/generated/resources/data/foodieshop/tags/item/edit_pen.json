@@ -1,6 +1,7 @@
 {
   "values": [
     "foodieshop:diner_blueprint_pen",
-    "foodieshop:shop_path_pen"
+    "foodieshop:shop_path_pen",
+    "foodieshop:shop_inventory_pen"
   ]
 }

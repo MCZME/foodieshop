@@ -25,7 +25,8 @@ public class ModItemTagsProvider extends ItemTagsProvider {
     protected void addTags(Provider provider) {
         tag(ModTags.EDIT_PEN)
             .add(ModItems.DINER_BLUEPRINT_PEN.get())
-            .add(ModItems.SHOP_PATH_PEN.get());
+            .add(ModItems.SHOP_PATH_PEN.get())
+            .add(ModItems.SHOP_INVENTORY_PEN.get());
     }
 
 }

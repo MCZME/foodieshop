@@ -41,8 +41,8 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 "",
                 "",
                 pos,
-                null,
-                null,
+                new ArrayList<>(),
+                new ArrayList<>(),
                 null,
                 null,
                 new ArrayList<>(),
@@ -207,6 +207,50 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         return false;
     }
 
+    public boolean addInventoryPos(BlockPos pos, Player player) {
+        if (!isPosInShopArea(pos)) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
+            return false;
+        }
+        if (this.shopConfig.getInventoryPos().contains(pos)) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_already_occupied"));
+            return false;
+        }
+        this.shopConfig.getInventoryPos().add(pos);
+        setChanged();
+        return true;
+    }
+
+    public boolean removeInventoryPos(BlockPos pos) {
+        boolean removed = this.shopConfig.getInventoryPos().remove(pos);
+        if (removed) {
+            setChanged();
+        }
+        return removed;
+    }
+
+    public boolean addCashBoxPos(BlockPos pos, Player player) {
+        if (!isPosInShopArea(pos)) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
+            return false;
+        }
+        if (this.shopConfig.getCashBoxPos().contains(pos)) {
+            player.sendSystemMessage(Component.translatable("message.foodieshop.pos_already_occupied"));
+            return false;
+        }
+        this.shopConfig.getCashBoxPos().add(pos);
+        setChanged();
+        return true;
+    }
+
+    public boolean removeCashBoxPos(BlockPos pos) {
+        boolean removed = this.shopConfig.getCashBoxPos().remove(pos);
+        if (removed) {
+            setChanged();
+        }
+        return removed;
+    }
+
     public boolean combineTables(BlockPos pos1, BlockPos pos2, Player player) {
         Optional<TableInfo> table1Opt = getTableAt(pos1);
         Optional<TableInfo> table2Opt = getTableAt(pos2);
@@ -246,8 +290,8 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 "",
                 "",
                 this.getBlockPos(),
-                null,
-                null,
+                new ArrayList<>(),
+                new ArrayList<>(),
                 null,
                 null,
                 new ArrayList<>(),
@@ -277,11 +321,11 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
         }
     }
 
-    public BlockPos getMenuContainerPos() {
-        return this.shopConfig.getMenuContainerPos();
+    public List<BlockPos> getInventoryPos() {
+        return this.shopConfig.getInventoryPos();
     }
 
-    public BlockPos getCashBoxPos() {
+    public List<BlockPos> getCashBoxPos() {
         return this.shopConfig.getCashBoxPos();
     }
 

@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import mczme.foodieshop.FoodieShop;
 import mczme.foodieshop.item.DinerBlueprintPenItem;
+import mczme.foodieshop.item.ShopInventoryPenItem;
 import mczme.foodieshop.item.ShopPathPenItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
@@ -26,6 +27,9 @@ public class ModItems {
 
     public static final Supplier<Item> SHOP_PATH_PEN = registerItem("shop_path_pen",
             () -> new ShopPathPenItem(new Item.Properties().stacksTo(1)));
+
+    public static final Supplier<Item> SHOP_INVENTORY_PEN = registerItem("shop_inventory_pen",
+            () -> new ShopInventoryPenItem(new Item.Properties().stacksTo(1)));
 
     public static Supplier<Item> registerItem(String name, Supplier<Item> itemSupplier) {
         Supplier<Item> item = ITEMS.register(name, itemSupplier);
