@@ -227,13 +227,12 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     }
 
     private void renderTables(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
-        for (int i = 0; i < config.getTableLocations().size(); i++) {
-            TableInfo table = config.getTableLocations().get(i);
+        for (TableInfo table : config.getTableLocations()) {
             for (BlockPos tablePos : table.getLocations()) {
                 Vector2d pos = worldToScreen(tablePos, center);
                 float size = zoom;
                 guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF8B4513);
-                if (selectedElement != null && selectedElement.type == ElementType.TABLE && selectedElement.index == i) {
+                if (selectedElement != null && selectedElement.type == ElementType.TABLE && selectedElement.element.equals(table)) {
                     guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
                 }
             }
@@ -241,36 +240,33 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     }
 
     private void renderSeats(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
-        for (int i = 0; i < config.getSeatLocations().size(); i++) {
-            SeatInfo seat = config.getSeatLocations().get(i);
+        for (SeatInfo seat : config.getSeatLocations()) {
             Vector2d pos = worldToScreen(seat.getLocation(), center);
             float size = zoom;
             guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF00FF00);
-            if (selectedElement != null && selectedElement.type == ElementType.SEAT && selectedElement.index == i) {
+            if (selectedElement != null && selectedElement.type == ElementType.SEAT && selectedElement.element.equals(seat)) {
                 guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
     }
 
     private void renderInventories(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
-        for (int i = 0; i < config.getInventoryLocations().size(); i++) {
-            BlockPos inventoryPos = config.getInventoryLocations().get(i);
+        for (BlockPos inventoryPos : config.getInventoryLocations()) {
             Vector2d pos = worldToScreen(inventoryPos, center);
             float size = zoom;
             guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFF00008B);
-            if (selectedElement != null && selectedElement.type == ElementType.INVENTORY && selectedElement.index == i) {
+            if (selectedElement != null && selectedElement.type == ElementType.INVENTORY && selectedElement.element.equals(inventoryPos)) {
                 guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
     }
 
     private void renderCashiers(GuiGraphics guiGraphics, ShopConfig config, BlockPos center) {
-        for (int i = 0; i < config.getCashierLocations().size(); i++) {
-            BlockPos cashierPos = config.getCashierLocations().get(i);
+        for (BlockPos cashierPos : config.getCashierLocations()) {
             Vector2d pos = worldToScreen(cashierPos, center);
             float size = zoom;
             guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFD700);
-            if (selectedElement != null && selectedElement.type == ElementType.CASHIER && selectedElement.index == i) {
+            if (selectedElement != null && selectedElement.type == ElementType.CASHIER && selectedElement.element.equals(cashierPos)) {
                 guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
@@ -286,12 +282,11 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 guiGraphics.vLine((int) pos2.x, (int) pos1.y, (int) pos2.y, 0xFF0000FF);
             }
         }
-        for (int i = 0; i < config.getPathGraph().getNodes().size(); i++) {
-            BlockPos waypoint = config.getPathGraph().getNodes().get(i);
+        for (BlockPos waypoint : config.getPathGraph().getNodes()) {
             Vector2d currentPos = worldToScreen(waypoint, center);
             float size = zoom * 0.6f;
             guiGraphics.fill((int) (currentPos.x - size / 2), (int) (currentPos.y - size / 2), (int) (currentPos.x + size / 2), (int) (currentPos.y + size / 2), 0xFF0000FF);
-            if (selectedElement != null && selectedElement.type == ElementType.WAYPOINT && selectedElement.index == i) {
+            if (selectedElement != null && selectedElement.type == ElementType.WAYPOINT && selectedElement.element.equals(waypoint)) {
                 guiGraphics.renderOutline((int) (currentPos.x - size / 2 - 1), (int) (currentPos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
@@ -327,41 +322,41 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             ShopConfig config = this.menu.getShopConfig();
             BlockPos center = this.blockEntity.getBlockPos();
             selectedElement = null;
-            for (int i = 0; i < config.getSeatLocations().size(); i++) {
-                Vector2d pos = worldToScreen(config.getSeatLocations().get(i).getLocation(), center);
+            for (SeatInfo seat : config.getSeatLocations()) {
+                Vector2d pos = worldToScreen(seat.getLocation(), center);
                 if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
-                    selectedElement = new SelectedElement(ElementType.SEAT, i);
+                    selectedElement = new SelectedElement(ElementType.SEAT, seat);
                     return true;
                 }
             }
-            for (int i = 0; i < config.getTableLocations().size(); i++) {
-                for (BlockPos tablePos : config.getTableLocations().get(i).getLocations()) {
+            for (TableInfo table : config.getTableLocations()) {
+                for (BlockPos tablePos : table.getLocations()) {
                     Vector2d pos = worldToScreen(tablePos, center);
                     if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
-                        selectedElement = new SelectedElement(ElementType.TABLE, i);
+                        selectedElement = new SelectedElement(ElementType.TABLE, table);
                         return true;
                     }
                 }
             }
-            for (int i = 0; i < config.getInventoryLocations().size(); i++) {
-                Vector2d pos = worldToScreen(config.getInventoryLocations().get(i), center);
+            for (BlockPos inventoryPos : config.getInventoryLocations()) {
+                Vector2d pos = worldToScreen(inventoryPos, center);
                 if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
-                    selectedElement = new SelectedElement(ElementType.INVENTORY, i);
+                    selectedElement = new SelectedElement(ElementType.INVENTORY, inventoryPos);
                     return true;
                 }
             }
-            for (int i = 0; i < config.getCashierLocations().size(); i++) {
-                Vector2d pos = worldToScreen(config.getCashierLocations().get(i), center);
+            for (BlockPos cashierPos : config.getCashierLocations()) {
+                Vector2d pos = worldToScreen(cashierPos, center);
                 if (Math.abs(pos.x - mouseX) < zoom / 2 && Math.abs(pos.y - mouseY) < zoom / 2) {
-                    selectedElement = new SelectedElement(ElementType.CASHIER, i);
+                    selectedElement = new SelectedElement(ElementType.CASHIER, cashierPos);
                     return true;
                 }
             }
             if (config.getPathGraph() != null) {
-                for (int i = 0; i < config.getPathGraph().getNodes().size(); i++) {
-                    Vector2d pos = worldToScreen(config.getPathGraph().getNodes().get(i), center);
+                for (BlockPos waypoint : config.getPathGraph().getNodes()) {
+                    Vector2d pos = worldToScreen(waypoint, center);
                     if (Math.abs(pos.x - mouseX) < zoom * 0.3f && Math.abs(pos.y - mouseY) < zoom * 0.3f) {
-                        selectedElement = new SelectedElement(ElementType.WAYPOINT, i);
+                        selectedElement = new SelectedElement(ElementType.WAYPOINT, waypoint);
                         return true;
                     }
                 }
@@ -421,6 +416,6 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         CASHIER
     }
 
-    private record SelectedElement(ElementType type, int index) {
+    private record SelectedElement(ElementType type, Object element) {
     }
 }

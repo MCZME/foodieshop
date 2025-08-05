@@ -49,6 +49,8 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
         renderShopArea(config, poseStack, bufferSource, origin);
         renderTables(config, poseStack, bufferSource, origin);
         renderSeats(config, poseStack, bufferSource, origin);
+        renderInventory(config, poseStack, bufferSource, origin);
+        renderCashier(config, poseStack, bufferSource, origin);
         renderPath(config, poseStack, bufferSource, origin);
         
         poseStack.popPose();
@@ -127,6 +129,22 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
                     consumer.addVertex(matrix, x2, y2, z2).setColor(1.0F, 0.5F, 0.0F, 1.0F);
                 }
             }
+        }
+    }
+
+    private void renderInventory(ShopConfig config, PoseStack poseStack,
+                                 MultiBufferSource bufferSource, BlockPos origin) {
+        VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        for (BlockPos pos : config.getInventoryLocations()) {
+            renderMarker(poseStack, consumer, pos, 0.2F, 0.5F, 1.0F, origin); // Yellow
+        }
+    }
+
+    private void renderCashier(ShopConfig config, PoseStack poseStack,
+                               MultiBufferSource bufferSource, BlockPos origin) {
+        VertexConsumer consumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
+        for (BlockPos pos : config.getCashierLocations()) {
+            renderMarker(poseStack, consumer, pos, 1.0F, 1.0F, 0.0F, origin); // Light Blue
         }
     }
 
