@@ -150,6 +150,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 break;
             case LAYOUT:
                 renderAreaAndLayout(guiGraphics, mouseX, mouseY, partialTicks);
+                renderLegend(guiGraphics);
                 break;
             case SAVE:
                 renderSaveAndValidate(guiGraphics, mouseX, mouseY, partialTicks);
@@ -266,7 +267,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         for (BlockPos deliveryBoxPos : config.getDeliveryBoxLocations()) {
             Vector2d pos = worldToScreen(deliveryBoxPos, center);
             float size = zoom;
-            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFA500); // Orange for delivery boxes
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFD700); // Orange for delivery boxes
             if (selectedElement != null && selectedElement.type == ElementType.DELIVERY_BOX && selectedElement.element.equals(deliveryBoxPos)) {
                 guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
@@ -278,7 +279,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         if (cashierDeskPos != null) {
             Vector2d pos = worldToScreen(cashierDeskPos, center);
             float size = zoom;
-            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFD700); // Gold for cashier desk
+            guiGraphics.fill((int) (pos.x - size / 2), (int) (pos.y - size / 2), (int) (pos.x + size / 2), (int) (pos.y + size / 2), 0xFFFFA500); // Gold for cashier desk
             if (selectedElement != null && selectedElement.type == ElementType.CASHIER_DESK && selectedElement.element.equals(cashierDeskPos)) {
                 guiGraphics.renderOutline((int) (pos.x - size / 2 - 1), (int) (pos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
@@ -303,6 +304,52 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 guiGraphics.renderOutline((int) (currentPos.x - size / 2 - 1), (int) (currentPos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
         }
+    }
+
+    private void renderLegend(GuiGraphics guiGraphics) {
+        int areaX = this.leftPos + 10;
+        int areaY = this.topPos + 30;
+        int areaWidth = this.imageWidth - 20;
+        int areaHeight = this.imageHeight - 60;
+
+        int legendWidth = 84;
+        int legendHeight = 74;
+        int x = areaX + areaWidth - legendWidth + 10;
+        int y = areaY + areaHeight - legendHeight - 15;
+
+        int legendColor = 0xA0FFFFFF;
+        int borderColor = 0xFF000000;
+        guiGraphics.fill(x - 2, y - 2, x + legendWidth - 10, y + legendHeight - 15, legendColor);
+        guiGraphics.renderOutline(x - 2, y - 2, legendWidth-8, legendHeight-13, borderColor);
+
+        int iconSize = 8;
+        int spacing = 10;
+        int currentY = y;
+
+        guiGraphics.fill(x, currentY, x + iconSize, currentY + iconSize, 0xFF8B4513);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.table"), x + iconSize + 4, currentY, 0x404040, false);
+        currentY += spacing;
+
+        guiGraphics.fill(x, currentY, x + iconSize, currentY + iconSize, 0xFF00FF00);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.seat"), x + iconSize + 4, currentY, 0x404040, false);
+        currentY += spacing;
+
+        guiGraphics.fill(x, currentY, x + iconSize, currentY + iconSize, 0xFF00008B);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.inventory"), x + iconSize + 4, currentY, 0x404040, false);
+        currentY += spacing;
+
+        guiGraphics.fill(x, currentY, x + iconSize, currentY + iconSize, 0xFFFFD700);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.delivery_box"), x + iconSize + 4, currentY, 0x404040, false);
+        currentY += spacing;
+
+        guiGraphics.fill(x, currentY, x + iconSize, currentY + iconSize, 0xFFFFA500);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.cashier_desk"), x + iconSize + 4, currentY, 0x404040, false);
+        currentY += spacing;
+
+        int waypointIconSize = (int) (iconSize * 0.8);
+        int waypointIconOffset = (iconSize - waypointIconSize) / 2;
+        guiGraphics.fill(x + waypointIconOffset, currentY + waypointIconOffset, x + waypointIconSize, currentY + waypointIconSize, 0xFF0000FF);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.waypoint"), x + iconSize + 4, currentY, 0x404040, false);
     }
 
     private void initSaveAndValidateWidgets() {

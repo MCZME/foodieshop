@@ -38,6 +38,8 @@ public class ZH_CN extends LanguageProvider {
         add("setup_mode.foodieshop.seat", "座位");
         add("setup_mode.foodieshop.table", "桌子");
         add("setup_mode.foodieshop.path", "路径");
+        add("mode.foodieshop.inventory", "库存");
+        add("mode.foodieshop.delivery_box", "收货箱");
         add("message.foodieshop.diner_blueprint_pen.add_seat", "添加座位: %d, %d, %d");
         add("message.foodieshop.diner_blueprint_pen.add_table", "添加桌子: %d, %d, %d");
         add("message.foodieshop.diner_blueprint_pen.remove_seat", "移除座位: %d, %d, %d");
@@ -61,11 +63,6 @@ public class ZH_CN extends LanguageProvider {
         add("message.foodieshop.diner_blueprint_pen.wrong_type_for_selection", "无法在当前模式下选择此类型的方块");
         add("message.foodieshop.diner_blueprint_pen.seat_not_adjacent_to_table", "绑定失败：座位必须与桌子相邻");
         add("message.foodieshop.diner_blueprint_pen.tables_not_adjacent", "组合失败：桌子必须相邻");
-
-        // 模式
-        add("mode.foodieshop.inventory", "库存");
-        add("mode.foodieshop.delivery_box", "收货箱");
-
         add("message.foodieshop.shop_inventory_pen.mode_switched", "切换到 %s 模式");
         add("message.foodieshop.shop_inventory_pen.bound_to_cashier_desk", "已绑定到收银台: %s");
         add("message.foodieshop.shop_inventory_pen.not_bound", "请先右键点击一个收银台来绑定");
@@ -90,6 +87,14 @@ public class ZH_CN extends LanguageProvider {
         add("gui.foodieshop.shop_config.validate", "验证配置");
         add("gui.foodieshop.shop_config.validation_results", "验证结果:");
         add("gui.foodieshop.shop_config.logs", "操作日志:");
+
+        // GUI - 图例
+        add("gui.foodieshop.shop_config.legend.table", "桌子");
+        add("gui.foodieshop.shop_config.legend.seat", "座位");
+        add("gui.foodieshop.shop_config.legend.inventory", "库存");
+        add("gui.foodieshop.shop_config.legend.delivery_box", "收货箱");
+        add("gui.foodieshop.shop_config.legend.cashier_desk", "收银台");
+        add("gui.foodieshop.shop_config.legend.waypoint", "路径点");
     }
 
 }
