@@ -1,7 +1,10 @@
 package mczme.foodieshop.api.shop;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -19,8 +22,9 @@ public class ShopConfig {
     private Set<SeatInfo> seatLocations;
     private Set<TableInfo> tableLocations;
     private PathGraph pathGraph;
+    private Set<Item> menuItems;
 
-    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, Set<BlockPos> inventoryLocations, Set<BlockPos> deliveryBoxLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, Set<SeatInfo> seatLocations, Set<TableInfo> tableLocations, PathGraph pathGraph) {
+    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, Set<BlockPos> inventoryLocations, Set<BlockPos> deliveryBoxLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, Set<SeatInfo> seatLocations, Set<TableInfo> tableLocations, PathGraph pathGraph, Set<Item> menuItems) {
         this.shopId = shopId;
         this.shopOwnerUUID = shopOwnerUUID;
         this.ownerName = ownerName != null ? ownerName : "";
@@ -33,6 +37,7 @@ public class ShopConfig {
         this.seatLocations = seatLocations != null ? seatLocations : new HashSet<>();
         this.tableLocations = tableLocations != null ? tableLocations : new HashSet<>();
         this.pathGraph = pathGraph != null ? pathGraph : new PathGraph();
+        this.menuItems = menuItems != null ? menuItems : new HashSet<>();
     }
 
     public CompoundTag toNbt() {
@@ -78,6 +83,13 @@ public class ShopConfig {
         if (this.pathGraph != null) {
             tag.put("pathGraph", this.pathGraph.toNbt());
         }
+
+        ListTag menuList = new ListTag();
+        for (Item item : this.menuItems) {
+            menuList.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(item).toString()));
+        }
+        tag.put("menuItems", menuList);
+
         return tag;
     }
 
@@ -123,7 +135,16 @@ public class ShopConfig {
 
         PathGraph pathGraph = PathGraph.fromNbt(tag.getCompound("pathGraph"));
 
-        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryLocations, deliveryBoxLocations, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph);
+        Set<Item> menuItems = new HashSet<>();
+        if (tag.contains("menuItems", Tag.TAG_LIST)) {
+            ListTag menuList = tag.getList("menuItems", Tag.TAG_STRING);
+            for (int i = 0; i < menuList.size(); i++) {
+                Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(menuList.getString(i)));
+                menuItems.add(item);
+            }
+        }
+
+        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryLocations, deliveryBoxLocations, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph, menuItems);
     }
 
     public String getShopId() {
@@ -220,6 +241,14 @@ public class ShopConfig {
 
     public void setPathGraph(PathGraph pathGraph) {
         this.pathGraph = pathGraph;
+    }
+
+    public Set<Item> getMenuItems() {
+        return menuItems;
+    }
+
+    public void setMenuItems(Set<Item> menuItems) {
+        this.menuItems = menuItems;
     }
 
     public boolean isPositionOccupied(BlockPos pos) {

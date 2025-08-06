@@ -77,7 +77,9 @@ public class ZH_CN extends LanguageProvider {
         // GUI
         add("gui.foodieshop.shop_config.tab.general", "基础设置");
         add("gui.foodieshop.shop_config.tab.layout", "区域与布局");
+        add("gui.foodieshop.shop_config.tab.menu_inventory", "菜单与库存");
         add("gui.foodieshop.shop_config.tab.save", "保存与验证");
+        add("gui.foodieshop.shop_config.stock", "库存");
         add("gui.foodieshop.close", "关闭");
         add("gui.foodieshop.save", "保存");
         add("gui.foodieshop.shop_config.owner_name", "店主名称:");

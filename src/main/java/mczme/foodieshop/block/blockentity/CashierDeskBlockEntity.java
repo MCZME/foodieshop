@@ -45,7 +45,8 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 null,
                 new HashSet<>(),
                 new HashSet<>(),
-                null
+                null,
+                new HashSet<>() // menuItems
         );
     }
 
@@ -294,7 +295,8 @@ public class CashierDeskBlockEntity extends BlockEntity implements MenuProvider 
                 null,
                 new HashSet<>(),
                 new HashSet<>(),
-                null
+                null,
+                new HashSet<>() // menuItems
         );
         setChanged();
     }

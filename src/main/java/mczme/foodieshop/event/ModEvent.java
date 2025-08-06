@@ -8,8 +8,10 @@ import mczme.foodieshop.data.modelprovider.FoodieShopModelProvider;
 import mczme.foodieshop.data.tag.ModBlockTagsProvider;
 import mczme.foodieshop.data.tag.ModItemTagsProvider;
 import mczme.foodieshop.entity.FoodieEntity;
+import mczme.foodieshop.network.packet.c2s.RequestStockContentsPacket;
 import mczme.foodieshop.network.packet.c2s.ResetLayoutPacket;
 import mczme.foodieshop.network.packet.c2s.UpdateShopConfigPacket;
+import mczme.foodieshop.network.packet.s2c.UpdateStockContentsPacket;
 import mczme.foodieshop.registry.ModEntityTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
@@ -63,6 +65,18 @@ public class ModEvent {
                 ResetLayoutPacket.TYPE,
                 ResetLayoutPacket.STREAM_CODEC,
                 ResetLayoutPacket::handle
+        );
+        registrar.playToServer(
+                RequestStockContentsPacket.TYPE,
+                RequestStockContentsPacket.STREAM_CODEC,
+                RequestStockContentsPacket::handle
+        );
+
+        // 注册服务器到客户端的数据包
+        registrar.playToClient(
+                UpdateStockContentsPacket.TYPE,
+                UpdateStockContentsPacket.STREAM_CODEC,
+                UpdateStockContentsPacket::handle
         );
     }
     

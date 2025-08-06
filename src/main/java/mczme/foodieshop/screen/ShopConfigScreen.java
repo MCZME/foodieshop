@@ -11,14 +11,22 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ConfirmScreen;
+import mczme.foodieshop.network.packet.c2s.RequestStockContentsPacket;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Vector2d;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
 public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
@@ -35,6 +43,8 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     private Vector2d lastMousePos = null;
     private boolean panInitialized = false;
     private EditBox shopNameEditBox;
+    private List<ItemStack> stockContents = new ArrayList<>();
+    private Set<Item> menuItems;
 
     public ShopConfigScreen(ShopConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -46,7 +56,11 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     @Override
     protected void init() {
         super.init();
+        this.menuItems = new HashSet<>(this.menu.getShopConfig().getMenuItems());
         this.updateWidgets();
+        if (Minecraft.getInstance().getConnection() != null) {
+            Minecraft.getInstance().getConnection().send(new RequestStockContentsPacket(this.blockEntity.getBlockPos()));
+        }
     }
 
     private void setCurrentTab(Tabs tab) {
@@ -59,15 +73,19 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         // 选项卡
         this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.general"), (button) -> this.setCurrentTab(Tabs.GENERAL))
                 .pos(this.leftPos + 5, this.topPos + 5)
-                .size(60, 20)
+                .size(50, 20)
                 .build());
         this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.layout"), (button) -> this.setCurrentTab(Tabs.LAYOUT))
-                .pos(this.leftPos + 70, this.topPos + 5)
-                .size(70, 20)
+                .pos(this.leftPos + 57, this.topPos + 5)
+                .size(55, 20)
+                .build());
+        this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.menu_inventory"), (button) -> this.setCurrentTab(Tabs.MENU_INVENTORY))
+                .pos(this.leftPos + 114, this.topPos + 5)
+                .size(60, 20)
                 .build());
         this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.save"), (button) -> this.setCurrentTab(Tabs.SAVE))
-                .pos(this.leftPos + 145, this.topPos + 5)
-                .size(70, 20)
+                .pos(this.leftPos + 176, this.topPos + 5)
+                .size(40, 20)
                 .build());
 
         // 根据当前选项卡添加控件和底部按钮
@@ -77,6 +95,9 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 break;
             case LAYOUT:
                 initAreaAndLayoutWidgets();
+                break;
+            case MENU_INVENTORY:
+                initMenuInventoryWidgets();
                 break;
             case SAVE:
                 initSaveAndValidateWidgets();
@@ -129,7 +150,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         if (this.shopNameEditBox != null && this.currentTab == Tabs.GENERAL) {
             this.menu.getShopConfig().setShopName(this.shopNameEditBox.getValue());
         }
-        
+        this.menu.getShopConfig().setMenuItems(this.menuItems);
         UpdateShopConfigPacket packet = new UpdateShopConfigPacket(this.blockEntity.getBlockPos(), this.menu.getShopConfig());
         if (Minecraft.getInstance().getConnection() != null) {
             Minecraft.getInstance().getConnection().send(packet);
@@ -161,6 +182,9 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             case LAYOUT:
                 renderAreaAndLayout(guiGraphics, mouseX, mouseY, partialTicks);
                 renderLegend(guiGraphics);
+                break;
+            case MENU_INVENTORY:
+                renderMenuInventory(guiGraphics, mouseX, mouseY, partialTicks);
                 break;
             case SAVE:
                 renderSaveAndValidate(guiGraphics, mouseX, mouseY, partialTicks);
@@ -362,8 +386,8 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.waypoint"), x + iconSize + 4, currentY, 0x404040, false);
     }
 
-    private void initSaveAndValidateWidgets() {
-        // 此选项卡的主区域不需要控件
+    private void initMenuInventoryWidgets() {
+        // No widgets needed for this tab, as it's all custom rendering and interaction.
     }
 
     private void renderSaveAndValidate(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -371,6 +395,32 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         guiGraphics.drawString(this.font, this.validationMessage, this.leftPos + 15, this.topPos + 78, 0x7F7F7F, false);
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.logs"), this.leftPos + 10, this.topPos + 100, 0x404040, false);
         guiGraphics.drawString(this.font, "日志将显示在这里。", this.leftPos + 15, this.topPos + 113, 0x7F7F7F, false);
+    }
+
+    private void initSaveAndValidateWidgets() {
+        // 此选项卡的主区域不需要控件
+    }
+
+    private void renderMenuInventory(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        // Render stock contents
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.stock"), this.leftPos + 10, this.topPos + 35, 0x404040, false);
+        int stockX = this.leftPos + 10;
+        int stockY = this.topPos + 45;
+        for (int i = 0; i < this.stockContents.size(); i++) {
+            ItemStack stack = this.stockContents.get(i);
+            int x = stockX + (i % 9) * 18;
+            int y = stockY + (i / 9) * 18;
+            guiGraphics.renderItem(stack, x, y);
+            guiGraphics.renderItemDecorations(this.font, stack, x, y);
+
+            if (this.menuItems.contains(stack.getItem())) {
+                guiGraphics.fill(x, y, x + 16, y + 16, 0x8000FF00); // Green overlay for selected items
+            }
+        }
+    }
+
+    public void updateStockContents(List<ItemStack> contents) {
+        this.stockContents = contents;
     }
 
     private Vector2d worldToScreen(BlockPos pos, BlockPos center) {
@@ -387,7 +437,23 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.currentTab == Tabs.LAYOUT) {
+        if (this.currentTab == Tabs.MENU_INVENTORY) {
+            int stockX = this.leftPos + 10;
+            int stockY = this.topPos + 45;
+            for (int i = 0; i < this.stockContents.size(); i++) {
+                int x = stockX + (i % 9) * 18;
+                int y = stockY + (i / 9) * 18;
+                if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
+                    Item item = this.stockContents.get(i).getItem();
+                    if (this.menuItems.contains(item)) {
+                        this.menuItems.remove(item);
+                    } else {
+                        this.menuItems.add(item);
+                    }
+                    return true;
+                }
+            }
+        } else if (this.currentTab == Tabs.LAYOUT) {
             lastMousePos = new Vector2d(mouseX, mouseY);
             ShopConfig config = this.menu.getShopConfig();
             BlockPos center = this.blockEntity.getBlockPos();
@@ -483,6 +549,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     enum Tabs {
         GENERAL,
         LAYOUT,
+        MENU_INVENTORY,
         SAVE
     }
 
