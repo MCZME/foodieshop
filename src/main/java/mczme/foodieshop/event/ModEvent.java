@@ -21,6 +21,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import mczme.foodieshop.api.trading.TradingManager;
+import mczme.foodieshop.config.TradingConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -79,5 +82,18 @@ public class ModEvent {
                 UpdateStockContentsPacket::handle
         );
     }
-    
+
+    @SubscribeEvent
+    public static void onModConfigLoad(final ModConfigEvent.Loading event) {
+        if (event.getConfig().getSpec() == TradingConfig.SPEC) {
+            TradingManager.load();
+        }
+    }
+
+    @SubscribeEvent
+    public static void onModConfigReload(final ModConfigEvent.Reloading event) {
+        if (event.getConfig().getSpec() == TradingConfig.SPEC) {
+            TradingManager.reload();
+        }
+    }
 }

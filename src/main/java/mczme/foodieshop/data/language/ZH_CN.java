@@ -99,6 +99,14 @@ public class ZH_CN extends LanguageProvider {
         add("gui.foodieshop.shop_config.legend.delivery_box", "收货箱");
         add("gui.foodieshop.shop_config.legend.cashier_desk", "收银台");
         add("gui.foodieshop.shop_config.legend.waypoint", "路径点");
+
+        // 配置屏幕
+        add("foodieshop.config.title", "FoodieShop 交易配置");
+        add("foodieshop.config.reload_trading", "重新加载交易配置");
+        add("foodieshop.config.open_folder", "打开配置文件夹");
+        add("foodieshop.config.reloaded", "交易配置已重新加载！");
+        add("foodieshop.config.trading_setting.title", "交易设置");
+        add("foodieshop.config.trading_setting.button", "交易设置...");
     }
 
 }

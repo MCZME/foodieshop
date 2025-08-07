@@ -1,6 +1,10 @@
 {
   "block.foodieshop.cashier_desk": "收银台",
   "entity.foodieshop.foodie": "食客",
+  "foodieshop.config.open_folder": "打开配置文件夹",
+  "foodieshop.config.reload_trading": "重新加载交易配置",
+  "foodieshop.config.reloaded": "交易配置已重新加载！",
+  "foodieshop.config.title": "FoodieShop 交易配置",
   "gui.foodieshop.close": "关闭",
   "gui.foodieshop.save": "保存",
   "gui.foodieshop.shop_config.legend.cashier_desk": "收银台",
