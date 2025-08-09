@@ -107,6 +107,14 @@ public class ZH_CN extends LanguageProvider {
         add("foodieshop.config.reloaded", "交易配置已重新加载！");
         add("foodieshop.config.trading_setting.title", "交易设置");
         add("foodieshop.config.trading_setting.button", "交易设置...");
+
+        // 交易设置屏幕
+        add("foodieshop.config.trading_setting.button.global_settings", "全局设置");
+        add("foodieshop.config.trading_setting.button.tiers", "等级");
+        add("foodieshop.config.trading_setting.button.food_value_tiers", "食物价值等级");
+        add("foodieshop.config.trading_setting.button.reward_items", "奖励物品");
+        add("foodieshop.config.trading_setting.button.fixed_trades", "固定交易");
+        add("foodieshop.config.trading_setting.button.mod_settings", "模组设置");
     }
 
 }

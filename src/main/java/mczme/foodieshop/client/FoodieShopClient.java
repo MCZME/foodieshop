@@ -1,7 +1,7 @@
 package mczme.foodieshop.client;
 
 import mczme.foodieshop.FoodieShop;
-import mczme.foodieshop.client.screen.CustomConfigScreen;
+import mczme.foodieshop.screen.CustomConfigScreen;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;

@@ -29,6 +29,7 @@ public class TradingManager {
     private static final Map<String, RewardItem> rewardItems = new HashMap<>();
     private static final List<String> tiers = new ArrayList<>();
     private static final List<FixedTrade> fixedTrades = new ArrayList<>();
+    private static final List<String> modFolders = new ArrayList<>();
 
     public static void load() {
         if (!CONFIG_DIR.exists() && !CONFIG_DIR.mkdirs()) {
@@ -71,6 +72,7 @@ public class TradingManager {
         rewardItems.clear();
         tiers.clear();
         fixedTrades.clear();
+        modFolders.clear();
     }
 
     private static void createExampleDirectory() {
@@ -113,6 +115,7 @@ public class TradingManager {
         File[] subDirs = CONFIG_DIR.listFiles(File::isDirectory);
         if (subDirs != null) {
             for (File subDir : subDirs) {
+                modFolders.add(subDir.getName());
                 File modSpecificFile = new File(subDir, "food_value_tiers.json");
                 if (modSpecificFile.exists()) {
                     loadValueTiersFromFile(modSpecificFile);
@@ -233,5 +236,9 @@ public class TradingManager {
 
     public static List<FixedTrade> getFixedTrades() {
         return fixedTrades;
+    }
+
+    public static List<String> getModFolders() {
+        return modFolders;
     }
 }
