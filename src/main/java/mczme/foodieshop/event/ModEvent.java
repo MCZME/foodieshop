@@ -8,6 +8,7 @@ import mczme.foodieshop.data.modelprovider.FoodieShopModelProvider;
 import mczme.foodieshop.data.tag.ModBlockTagsProvider;
 import mczme.foodieshop.data.tag.ModItemTagsProvider;
 import mczme.foodieshop.entity.FoodieEntity;
+import mczme.foodieshop.network.packet.c2s.ReloadTradingDataPacket;
 import mczme.foodieshop.network.packet.c2s.RequestStockContentsPacket;
 import mczme.foodieshop.network.packet.c2s.ResetLayoutPacket;
 import mczme.foodieshop.network.packet.c2s.UpdateShopConfigPacket;
@@ -21,8 +22,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
-import mczme.foodieshop.api.trading.TradingManager;
-import mczme.foodieshop.config.TradingConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -74,6 +73,11 @@ public class ModEvent {
                 RequestStockContentsPacket.STREAM_CODEC,
                 RequestStockContentsPacket::handle
         );
+        registrar.playToServer(
+                ReloadTradingDataPacket.TYPE,
+                ReloadTradingDataPacket.STREAM_CODEC,
+                ReloadTradingDataPacket::handle
+        );
 
         // 注册服务器到客户端的数据包
         registrar.playToClient(
@@ -85,15 +89,13 @@ public class ModEvent {
 
     @SubscribeEvent
     public static void onModConfigLoad(final ModConfigEvent.Loading event) {
-        if (event.getConfig().getSpec() == TradingConfig.SPEC) {
-            TradingManager.load();
-        }
+        // 配置加载事件不适合加载需要 HolderLookup.Provider 的数据
+        // 实际的交易数据加载已在 GameEvent.onServerStarting 中处理
     }
 
     @SubscribeEvent
     public static void onModConfigReload(final ModConfigEvent.Reloading event) {
-        if (event.getConfig().getSpec() == TradingConfig.SPEC) {
-            TradingManager.reload();
-        }
+        // 配置重新加载事件不适合重新加载需要 HolderLookup.Provider 的数据
+        // 实际的交易数据重新加载已在 GameEvent.onServerStarting 中处理
     }
 }

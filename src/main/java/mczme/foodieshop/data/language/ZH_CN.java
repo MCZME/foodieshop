@@ -100,21 +100,25 @@ public class ZH_CN extends LanguageProvider {
         add("gui.foodieshop.shop_config.legend.cashier_desk", "收银台");
         add("gui.foodieshop.shop_config.legend.waypoint", "路径点");
 
-        // 配置屏幕
+        // 配置
         add("foodieshop.config.title", "FoodieShop 交易配置");
+        add("foodieshop.config.reload", "重新加载");
         add("foodieshop.config.reload_trading", "重新加载交易配置");
         add("foodieshop.config.open_folder", "打开配置文件夹");
         add("foodieshop.config.reloaded", "交易配置已重新加载！");
         add("foodieshop.config.trading_setting.title", "交易设置");
         add("foodieshop.config.trading_setting.button", "交易设置...");
 
-        // 交易设置屏幕
+        // 配置-交易配置
         add("foodieshop.config.trading_setting.button.global_settings", "全局设置");
         add("foodieshop.config.trading_setting.button.tiers", "等级");
-        add("foodieshop.config.trading_setting.button.food_value_tiers", "食物价值等级");
-        add("foodieshop.config.trading_setting.button.reward_items", "奖励物品");
+        add("foodieshop.config.trading_setting.button.food_value_tiers", "食物价值");
+        add("foodieshop.config.trading_setting.button.reward_items","物品价值");
         add("foodieshop.config.trading_setting.button.fixed_trades", "固定交易");
         add("foodieshop.config.trading_setting.button.mod_settings", "模组设置");
+        add("foodieshop.config.trading_setting.search_placeholder", "搜索...");
+        add("foodieshop.config.trading_setting.add_button", "添加");
+        add("foodieshop.config.trading_setting.settings_button", "设置");
     }
 
 }

@@ -1,10 +1,13 @@
 package mczme.foodieshop.screen;
 
 import mczme.foodieshop.api.trading.TradingManager;
+import mczme.foodieshop.network.packet.c2s.ReloadTradingDataPacket;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.StringWidget;
 import mczme.foodieshop.screen.widget.DropdownMenuWidget;
+import mczme.foodieshop.screen.widget.ItemDisplayWidget; // 导入新的ItemDisplayWidget
 import mczme.foodieshop.screen.widget.ScrollWidget;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
@@ -31,6 +34,8 @@ public class TradingSettingScreen extends Screen {
     private DropdownMenuWidget globalSettings;
     private DropdownMenuWidget modSettings;
     private ScrollWidget navScrollWidget;
+    private ScrollWidget infoScrollWidget;
+    private String currentConfigType = "general_sellable_items"; // 默认显示通用可出售物品
     public TradingSettingScreen(Screen parent) {
         super(Component.translatable("foodieshop.config.trading_setting.title"));
         this.parent = parent;
@@ -50,18 +55,45 @@ public class TradingSettingScreen extends Screen {
         // 设置面板 (右侧)
         int settingsPanelX = NAV_WIDTH + PADDING;
         int settingsPanelWidth = this.width - settingsPanelX - PADDING;
-        LinearLayout settingsPanel = new LinearLayout(settingsPanelX, TOP_MARGIN + PADDING, LinearLayout.Orientation.VERTICAL).spacing(8);
-        StringWidget settingsString = new StringWidget(Component.literal("Settings go here"), this.font);
-        settingsPanel.addChild(settingsString);
-        settingsString.setWidth(settingsPanelWidth);
+        LinearLayout settingsPanel = new LinearLayout(settingsPanelX, TOP_MARGIN + PADDING, LinearLayout.Orientation.VERTICAL).spacing(4);
+
+        // 工具区域
+        LinearLayout toolArea = LinearLayout.horizontal().spacing(4);
+        EditBox searchBox = new EditBox(this.font, 0, 0, settingsPanelWidth - 100, 20, Component.translatable("foodieshop.config.trading_setting.search_placeholder"));
+        toolArea.addChild(searchBox);
+        toolArea.addChild(Button.builder(Component.translatable("foodieshop.config.trading_setting.add_button"), button -> {}).width(40).build());
+        toolArea.addChild(Button.builder(Component.translatable("foodieshop.config.trading_setting.settings_button"), button -> {}).width(40).build());
+        toolArea.arrangeElements();
+        settingsPanel.addChild(toolArea);
+
+        // 信息区域
+        this.infoScrollWidget = new ScrollWidget(0, 0, settingsPanelWidth, mainAreaHeight - toolArea.getHeight() - PADDING, Component.empty());
+
+        // 为信息区域添加内容 (示例)
+        LinearLayout infoContent = LinearLayout.vertical().spacing(2);
+        // 示例物品，实际应用中会从数据加载
+        infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, net.minecraft.world.item.Items.DIAMOND.getDefaultInstance(), 100));
+        infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, net.minecraft.world.item.Items.EMERALD.getDefaultInstance(), 50));
+        infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, net.minecraft.world.item.Items.GOLD_INGOT.getDefaultInstance(), 20));
+        infoContent.arrangeElements();
+        this.infoScrollWidget.setContents(infoContent);
+        settingsPanel.addChild(this.infoScrollWidget);
+
         settingsPanel.arrangeElements();
         settingsPanel.visitWidgets(this::addRenderableWidget);
 
         // 页脚按钮
         final int buttonWidth = 98;
         LinearLayout footerButtons = new LinearLayout(0, 0, LinearLayout.Orientation.HORIZONTAL).spacing(8);
-        footerButtons.addChild(Button.builder(Component.translatable("foodieshop.config.reload_trading"), button -> TradingManager.reload()).width(buttonWidth).build());
         footerButtons.addChild(Button.builder(Component.translatable("foodieshop.config.open_folder"), button -> Util.getPlatform().openFile(CONFIG_DIR)).width(buttonWidth).build());
+        footerButtons.addChild(Button.builder(Component.translatable("foodieshop.config.reload"), button -> {
+            if (this.minecraft != null && this.minecraft.level != null) {
+                this.minecraft.getConnection().send(new ReloadTradingDataPacket());
+                // TradingManager.reload(this.minecraft.level.registryAccess());
+                this.createDropdowns(); // 重新创建下拉菜单以反映更改
+                this.refreshNavLayout(); // 刷新导航布局
+            }
+        }).width(buttonWidth).build());
         footerButtons.addChild(Button.builder(CommonComponents.GUI_DONE, button -> this.onClose()).width(buttonWidth).build());
         footerButtons.arrangeElements();
         footerButtons.setX((this.width - footerButtons.getWidth()) / 2);
@@ -71,6 +103,7 @@ public class TradingSettingScreen extends Screen {
         // 导航面板 (左侧)
         this.navScrollWidget = this.addRenderableWidget(new ScrollWidget(0, TOP_MARGIN, NAV_WIDTH, mainAreaHeight, Component.empty()));
         this.refreshNavLayout();
+        this.refreshInfoPanel(); // 首次加载屏幕时刷新信息面板
     }
 
     @Override
@@ -87,22 +120,39 @@ public class TradingSettingScreen extends Screen {
         if (this.navScrollWidget != null) {
             this.navScrollWidget.renderOverlay(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         }
+        if (this.infoScrollWidget != null) { // 渲染信息区域的浮层
+            this.infoScrollWidget.renderOverlay(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        }
     }
 
     private void createDropdowns() {
         this.globalSettings = new DropdownMenuWidget(Component.translatable("foodieshop.config.trading_setting.button.global_settings"), 90);
-        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.tiers"), b -> {});
-        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.food_value_tiers"), b -> {});
-        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.reward_items"), b -> {});
-        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.fixed_trades"), b -> {});
+        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.general_sellable_items"), b -> {
+            this.currentConfigType = "general_sellable_items";
+            this.refreshInfoPanel();
+        });
+        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.general_currency_items"), b -> {
+            this.currentConfigType = "general_currency_items";
+            this.refreshInfoPanel();
+        });
+        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.fixed_trades"), b -> {
+            this.currentConfigType = "fixed_trades";
+            this.refreshInfoPanel();
+        });
         this.globalSettings.setOnExpandCollapse(this::refreshNavLayout);
 
         this.modSettings = new DropdownMenuWidget(Component.translatable("foodieshop.config.trading_setting.button.mod_settings"), 90);
         List<String> modFolders = TradingManager.getModFolders();
         for (String modId : modFolders) {
             DropdownMenuWidget modSpecificMenu = this.modSettings.addNestedMenu(Component.literal(modId), 80);
-            modSpecificMenu.addOption(Component.translatable("foodieshop.config.trading_setting.button.food_value_tiers"), b -> {});
-            modSpecificMenu.addOption(Component.translatable("foodieshop.config.trading_setting.button.reward_items"), b -> {});
+            modSpecificMenu.addOption(Component.translatable("foodieshop.config.trading_setting.button.mod_sellable_items"), b -> {
+                this.currentConfigType = modId + "_sellable_items";
+                this.refreshInfoPanel();
+            });
+            modSpecificMenu.addOption(Component.translatable("foodieshop.config.trading_setting.button.mod_currency_items"), b -> {
+                this.currentConfigType = modId + "_currency_items";
+                this.refreshInfoPanel();
+            });
             modSpecificMenu.setOnExpandCollapse(this::refreshNavLayout);
         }
         this.modSettings.setOnExpandCollapse(this::refreshNavLayout);
@@ -132,5 +182,50 @@ public class TradingSettingScreen extends Screen {
     @Override
     public void onClose() {
         this.minecraft.setScreen(this.parent);
+    }
+
+    private void refreshInfoPanel() {
+        if (this.minecraft == null || this.minecraft.level == null) {
+            return;
+        }
+
+        LinearLayout infoContent = LinearLayout.vertical().spacing(2);
+        int settingsPanelWidth = this.width - NAV_WIDTH - PADDING * 2; // 重新计算宽度
+
+        switch (this.currentConfigType) {
+            case "general_sellable_items":
+                TradingManager.getSellableItems("general").forEach((itemStack, value) -> {
+                    infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, itemStack, value));
+                });
+                break;
+            case "general_currency_items":
+                TradingManager.getCurrencyItems("general").forEach((itemStack, value) -> {
+                    infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, itemStack, value));
+                });
+                break;
+            case "fixed_trades":
+                TradingManager.getFixedTrades().forEach(fixedTrade -> {
+                    infoContent.addChild(new StringWidget(Component.literal(fixedTrade.toString()), this.font)); // 暂时显示字符串
+                });
+                break;
+            default:
+                // 处理模组特定的可出售物品和货币物品
+                if (this.currentConfigType.endsWith("_sellable_items")) {
+                    String modId = this.currentConfigType.replace("_sellable_items", "");
+                    TradingManager.getSellableItems(modId).forEach((itemStack, value) -> {
+                        infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, itemStack, value));
+                    });
+                } else if (this.currentConfigType.endsWith("_currency_items")) {
+                    String modId = this.currentConfigType.replace("_currency_items", "");
+                    TradingManager.getCurrencyItems(modId).forEach((itemStack, value) -> {
+                        infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, itemStack, value));
+                    });
+                }
+                break;
+        }
+
+        infoContent.arrangeElements();
+        this.infoScrollWidget.setContents(infoContent);
+        this.infoScrollWidget.setScrollAmount(this.infoScrollWidget.scrollAmount()); // 重建内容后，将滚动量限制在新的最大值内。
     }
 }
