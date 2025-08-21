@@ -68,15 +68,6 @@ public class TradingSettingScreen extends Screen {
 
         // 信息区域
         this.infoScrollWidget = new ScrollWidget(0, 0, settingsPanelWidth, mainAreaHeight - toolArea.getHeight() - PADDING, Component.empty());
-
-        // 为信息区域添加内容 (示例)
-        LinearLayout infoContent = LinearLayout.vertical().spacing(2);
-        // 示例物品，实际应用中会从数据加载
-        infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, net.minecraft.world.item.Items.DIAMOND.getDefaultInstance(), 100));
-        infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, net.minecraft.world.item.Items.EMERALD.getDefaultInstance(), 50));
-        infoContent.addChild(new ItemDisplayWidget(0, 0, settingsPanelWidth, 40, net.minecraft.world.item.Items.GOLD_INGOT.getDefaultInstance(), 20));
-        infoContent.arrangeElements();
-        this.infoScrollWidget.setContents(infoContent);
         settingsPanel.addChild(this.infoScrollWidget);
 
         settingsPanel.arrangeElements();

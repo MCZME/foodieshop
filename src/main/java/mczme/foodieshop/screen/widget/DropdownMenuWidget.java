@@ -24,6 +24,7 @@ public class DropdownMenuWidget extends AbstractWidget implements GuiEventListen
     private boolean expanded = false;
     private Runnable expandCollapseListener;
     private LinearLayout optionsContainer;
+    private GuiEventListener clickedOption;
 
     public DropdownMenuWidget(Component text, int width) {
         super(0, 0, width, 20, text); // 默认高度为20
@@ -50,12 +51,7 @@ public class DropdownMenuWidget extends AbstractWidget implements GuiEventListen
      * 添加一个普通的选项按钮。
      */
     public void addOption(Component text, Button.OnPress onPress) {
-        Button button = Button.builder(text, onPress).width(this.width - 10).build();
-        LinearLayout paddedButton = new LinearLayout(this.width, button.getHeight(), LinearLayout.Orientation.HORIZONTAL);
-        paddedButton.addChild(new Spacer(10, 0));
-        paddedButton.addChild(button);
-        paddedButton.arrangeElements();
-        this.children.add(paddedButton);
+        this.children.add(new PaddedButton(this.width, 20, text, onPress));
     }
 
     private void toggleExpanded() {
@@ -131,21 +127,29 @@ public class DropdownMenuWidget extends AbstractWidget implements GuiEventListen
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // 优先级1：检查主按钮是否被点击。这会切换展开/折叠状态。
         if (this.mainButton.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
 
-        // 优先级2：如果菜单已展开，则检查是否有任何子项被点击。
         if (this.expanded) {
-            // 遍历容器中的子控件以检查点击事件。
             for (LayoutElement child : this.children) {
-                if (child instanceof GuiEventListener && ((GuiEventListener) child).mouseClicked(mouseX, mouseY, button)) {
+                if (child instanceof GuiEventListener listener && listener.mouseClicked(mouseX, mouseY, button)) {
+                    this.clickedOption = listener;
                     return true;
                 }
             }
         }
 
+        return false;
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (this.clickedOption != null) {
+            boolean result = this.clickedOption.mouseReleased(mouseX, mouseY, button);
+            this.clickedOption = null;
+            return result;
+        }
         return false;
     }
 
@@ -165,5 +169,47 @@ public class DropdownMenuWidget extends AbstractWidget implements GuiEventListen
 
         @Override
         protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {}
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    static class PaddedButton extends AbstractWidget implements GuiEventListener, Renderable {
+        private final Button button;
+
+        public PaddedButton(int width, int height, Component text, Button.OnPress onPress) {
+            super(0, 0, width, height, text);
+            this.button = Button.builder(text, onPress).width(width - 10).build();
+        }
+
+        @Override
+        public void setX(int x) {
+            super.setX(x);
+            this.button.setX(x + 10);
+        }
+
+        @Override
+        public void setY(int y) {
+            super.setY(y);
+            this.button.setY(y);
+        }
+
+        @Override
+        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            this.button.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
+
+        @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            return this.button.mouseClicked(mouseX, mouseY, button);
+        }
+
+        @Override
+        public boolean mouseReleased(double mouseX, double mouseY, int button) {
+            return this.button.mouseReleased(mouseX, mouseY, button);
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {
+            this.button.updateNarration(pNarrationElementOutput);
+        }
     }
 }

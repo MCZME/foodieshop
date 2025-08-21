@@ -87,10 +87,6 @@ public class ScrollWidget extends AbstractWidget implements Renderable, GuiEvent
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!this.visible) return false;
 
-        // 优先级1：首先处理浮层点击，因为它们在最上层。
-        if (this.mouseClickedOverlay(mouseX, mouseY, button)) {
-            return true;
-        }
 
         // 优先级2：处理滚动条点击。
         boolean isClickOnScrollBar = this.scrollbarVisible()
@@ -108,10 +104,6 @@ public class ScrollWidget extends AbstractWidget implements Renderable, GuiEvent
         if (this.withinContentAreaPoint(mouseX, mouseY)) {
             double adjustedY = mouseY + this.scrollAmount();
             for (GuiEventListener child : this.children()) {
-                // DropdownMenuWidget 由 mouseClickedOverlay 处理，所以在此跳过。
-                if (child instanceof DropdownMenuWidget) {
-                    continue;
-                }
                 if (child.mouseClicked(mouseX, adjustedY, button)) {
                     this.clickedWidget = child;
                     return true;
@@ -121,17 +113,6 @@ public class ScrollWidget extends AbstractWidget implements Renderable, GuiEvent
         return false;
     }
 
-    public boolean mouseClickedOverlay(double mouseX, double mouseY, int button) {
-        double adjustedY = mouseY + this.scrollAmount();
-        for (GuiEventListener child : this.children()) {
-            if (child instanceof DropdownMenuWidget dropdown) {
-                if (dropdown.mouseClicked(mouseX, adjustedY, button)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
@@ -204,17 +185,11 @@ public class ScrollWidget extends AbstractWidget implements Renderable, GuiEvent
     protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.contents.setX(this.getX() + INNER_PADDING);
         this.contents.setY(this.getY() + INNER_PADDING);
-        this.contents.visitWidgets(widget -> renderChild(guiGraphics, widget, mouseX, mouseY, partialTick));
-    }
-    
-    private void renderChild(GuiGraphics guiGraphics, LayoutElement child, int mouseX, int mouseY, float partialTick) {
-        double childTop = child.getY() - this.scrollAmount;
-        double childBottom = childTop + child.getHeight();
-        if (childBottom > this.getY() && childTop < this.getY() + this.getHeight()) {
-            if (child instanceof Renderable) {
-                ((Renderable)child).render(guiGraphics, mouseX, mouseY, partialTick);
+        this.contents.visitWidgets(widget -> {
+            if (widget instanceof Renderable) {
+                ((Renderable)widget).render(guiGraphics, mouseX, mouseY, partialTick);
             }
-        }
+        });
     }
 
     public void renderOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {

@@ -1,6 +1,5 @@
 package mczme.foodieshop.screen.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
