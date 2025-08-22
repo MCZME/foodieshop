@@ -115,17 +115,19 @@ public class ZH_CN extends LanguageProvider {
         add("foodieshop.config.trading_setting.button", "交易设置...");
         add("foodieshop.config.trading_setting.no_world.title", "需要加载世界");
         add("foodieshop.config.trading_setting.no_world.message", "请先进入一个世界，然后再进行配置。");
+        add("foodieshop.config.trading_setting.save_disabled.title", "保存已禁用");
+        add("foodieshop.config.trading_setting.save_disabled.message", "服务器配置不允许修改交易配置。");
 
         // 配置-交易配置
         add("foodieshop.config.trading_setting.button.global_settings", "全局设置");
-        add("foodieshop.config.trading_setting.button.tiers", "等级");
-        add("foodieshop.config.trading_setting.button.food_value_tiers", "食物价值");
-        add("foodieshop.config.trading_setting.button.reward_items","物品价值");
+        add("foodieshop.config.trading_setting.button.sellable_items", "可售物品");
+        add("foodieshop.config.trading_setting.button.currency_items", "货币物品");
         add("foodieshop.config.trading_setting.button.fixed_trades", "固定交易");
         add("foodieshop.config.trading_setting.button.mod_settings", "模组设置");
         add("foodieshop.config.trading_setting.search_placeholder", "搜索...");
         add("foodieshop.config.trading_setting.add_button", "添加");
         add("foodieshop.config.trading_setting.settings_button", "设置");
+        add("foodieshop.config.save", "保存");
 
         // 配置-交易配置-弹窗
         add("foodieshop.config.trading_setting.popup.add_item_title", "添加新条目");

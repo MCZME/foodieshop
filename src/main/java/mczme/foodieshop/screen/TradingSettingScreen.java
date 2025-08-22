@@ -17,6 +17,8 @@ import net.minecraft.Util;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLPaths;
+import mczme.foodieshop.config.ServerConfig;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 
 import java.io.File;
 import java.util.List;
@@ -85,6 +87,19 @@ public class TradingSettingScreen extends Screen {
         final int buttonWidth = 98;
         LinearLayout footerButtons = new LinearLayout(0, 0, LinearLayout.Orientation.HORIZONTAL).spacing(8);
         footerButtons.addChild(Button.builder(Component.translatable("foodieshop.config.open_folder"), button -> Util.getPlatform().openFile(CONFIG_DIR)).width(buttonWidth).build());
+        footerButtons.addChild(Button.builder(Component.translatable("foodieshop.config.save"), button -> {
+            if (!ServerConfig.CAN_MODIFY_TRADING_CONFIG.get()) {
+                this.minecraft.setScreen(new ConfirmScreen(
+                        (result) -> this.minecraft.setScreen(this),
+                        Component.translatable("foodieshop.config.trading_setting.save_disabled.title"),
+                        Component.translatable("foodieshop.config.trading_setting.save_disabled.message")
+                ));
+                return;
+            }
+            if (this.minecraft != null && this.minecraft.level != null) {
+                TradingManager.save(this.minecraft.level.registryAccess());
+            }
+        }).width(buttonWidth).build());
         footerButtons.addChild(Button.builder(Component.translatable("foodieshop.config.reload"), button -> {
             if (this.minecraft != null && this.minecraft.level != null) {
                 this.minecraft.getConnection().send(new ReloadTradingDataPacket());
@@ -126,11 +141,11 @@ public class TradingSettingScreen extends Screen {
 
     private void createDropdowns() {
         this.globalSettings = new DropdownMenuWidget(Component.translatable("foodieshop.config.trading_setting.button.global_settings"), 90);
-        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.general_sellable_items"), b -> {
+        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.sellable_items"), b -> {
             this.currentConfigType = "general_sellable_items";
             this.refreshInfoPanel();
         });
-        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.general_currency_items"), b -> {
+        this.globalSettings.addOption(Component.translatable("foodieshop.config.trading_setting.button.currency_items"), b -> {
             this.currentConfigType = "general_currency_items";
             this.refreshInfoPanel();
         });
@@ -144,11 +159,11 @@ public class TradingSettingScreen extends Screen {
         List<String> modFolders = TradingManager.getModFolders();
         for (String modId : modFolders) {
             DropdownMenuWidget modSpecificMenu = this.modSettings.addNestedMenu(Component.literal(modId), 80);
-            modSpecificMenu.addOption(Component.translatable("foodieshop.config.trading_setting.button.mod_sellable_items"), b -> {
+            modSpecificMenu.addOption(Component.translatable("foodieshop.config.trading_setting.button.sellable_items"), b -> {
                 this.currentConfigType = modId + "_sellable_items";
                 this.refreshInfoPanel();
             });
-            modSpecificMenu.addOption(Component.translatable("foodieshop.config.trading_setting.button.mod_currency_items"), b -> {
+            modSpecificMenu.addOption(Component.translatable("foodieshop.config.trading_setting.button.currency_items"), b -> {
                 this.currentConfigType = modId + "_currency_items";
                 this.refreshInfoPanel();
             });

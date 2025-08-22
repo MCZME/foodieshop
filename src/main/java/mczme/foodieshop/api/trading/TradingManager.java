@@ -20,6 +20,8 @@ import java.util.Map;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import mczme.foodieshop.api.trading.config.ItemValue;
+import mczme.foodieshop.config.ServerConfig;
+import mczme.foodieshop.util.ItemUtils;
 
 public class TradingManager {
 
@@ -206,5 +208,54 @@ public class TradingManager {
 
     public static void addModFolder(String modId) {
         tradingData.addModData(modId);
+    }
+
+    public static void save(HolderLookup.Provider registries) {
+        if (!ServerConfig.CAN_MODIFY_TRADING_CONFIG.get()) {
+            LOGGER.warn("交易配置不允许修改，保存操作已取消。");
+            return;
+        }
+
+        LOGGER.info("开始将 FoodieShop 交易数据保存到 JSON 文件...");
+
+        // 保存通用可出售物品
+        saveItemValueToFile(new File(CONFIG_DIR, "general_sellable_items.json"), tradingData.getSellableItems().getOrDefault("general", new HashMap<>()));
+        // 保存通用货币物品
+        saveItemValueToFile(new File(CONFIG_DIR, "general_currency_items.json"), tradingData.getCurrencyItems().getOrDefault("general", new HashMap<>()));
+
+        // 保存模组特定配置
+        for (String modId : tradingData.getModFolders()) {
+            File modDir = new File(CONFIG_DIR, modId);
+            if (!modDir.exists()) {
+                modDir.mkdirs();
+            }
+            saveItemValueToFile(new File(modDir, "sellable_items.json"), tradingData.getSellableItems().getOrDefault(modId, new HashMap<>()));
+            saveItemValueToFile(new File(modDir, "currency_items.json"), tradingData.getCurrencyItems().getOrDefault(modId, new HashMap<>()));
+        }
+
+        // 保存固定交易
+        saveFixedTradesToFile(new File(CONFIG_DIR, "fixed_trades.json"), tradingData.getFixedTrades());
+
+        LOGGER.info("交易数据保存完成。");
+    }
+
+    private static void saveItemValueToFile(File file, Map<ItemStack, Integer> itemMap) {
+        List<ItemValue> itemValues = new ArrayList<>();
+        itemMap.forEach((itemStack, value) -> itemValues.add(new ItemValue(ItemUtils.toJson(itemStack), value)));
+        try (FileWriter writer = new FileWriter(file)) {
+            GSON.toJson(itemValues, writer);
+            LOGGER.info("保存 " + file.getName() + " 文件于 " + file.getParent());
+        } catch (IOException e) {
+            LOGGER.error("无法保存 " + file.getName(), e);
+        }
+    }
+
+    private static void saveFixedTradesToFile(File file, List<FixedTrade> fixedTrades) {
+        try (FileWriter writer = new FileWriter(file)) {
+            GSON.toJson(fixedTrades, writer);
+            LOGGER.info("保存 " + file.getName() + " 文件于 " + file.getParent());
+        } catch (IOException e) {
+            LOGGER.error("无法保存 " + file.getName(), e);
+        }
     }
 }

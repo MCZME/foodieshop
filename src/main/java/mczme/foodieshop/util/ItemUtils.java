@@ -58,6 +58,39 @@ public class ItemUtils {
         return itemStack;
     }
 
+    /**
+     * 将ItemStack转换为JsonElement。
+     *
+     * @param itemStack 要转换的ItemStack。
+     * @return 代表物品的JsonElement。
+     */
+    @NotNull
+    public static JsonElement toJson(ItemStack itemStack) {
+        JsonObject json = new JsonObject();
+        json.addProperty("id", BuiltInRegistries.ITEM.getKey(itemStack.getItem()).toString());
+        if (itemStack.getCount() > 1) {
+            json.addProperty("count", itemStack.getCount());
+        }
+        if (!itemStack.getComponents().isEmpty()) {
+            JsonObject componentsJson = new JsonObject();
+            itemStack.getComponents().forEach(typedDataComponent -> {
+                DataComponentType<Object> type = (DataComponentType<Object>) typedDataComponent.type();
+                Object value = typedDataComponent.value();
+                if (type.codec() != null) {
+                    type.codec().encodeStart(JsonOps.INSTANCE, value)
+                            .resultOrPartial(error -> {
+                                // 记录错误
+                            })
+                            .ifPresent(jsonElement -> componentsJson.add(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type).toString(), jsonElement));
+                }
+            });
+            if (componentsJson.size() > 0) {
+                json.add("components", componentsJson);
+            }
+        }
+        return json;
+    }
+
     private static <T> void applyComponent(ItemStack stack, DataComponentType<T> type, JsonElement json, HolderLookup.Provider registries) {
         if (type.codec() == null) return;
 
