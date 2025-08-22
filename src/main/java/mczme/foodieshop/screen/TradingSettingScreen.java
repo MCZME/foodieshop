@@ -62,7 +62,13 @@ public class TradingSettingScreen extends Screen {
         EditBox searchBox = new EditBox(this.font, 0, 0, settingsPanelWidth - 100, 20, Component.translatable("foodieshop.config.trading_setting.search_placeholder"));
         toolArea.addChild(searchBox);
         toolArea.addChild(Button.builder(Component.translatable("foodieshop.config.trading_setting.add_button"), button -> {
-            this.minecraft.setScreen(new AddItemPopupScreen(this));
+            String modId = null;
+            if (this.currentConfigType.endsWith("_sellable_items") || this.currentConfigType.endsWith("_currency_items")) {
+                if (!this.currentConfigType.startsWith("general_")) {
+                    modId = this.currentConfigType.substring(0, this.currentConfigType.indexOf("_"));
+                }
+            }
+            this.minecraft.setScreen(new AddItemPopupScreen(this, modId));
         }).width(40).build());
         toolArea.addChild(Button.builder(Component.translatable("foodieshop.config.trading_setting.settings_button"), button -> {}).width(40).build());
         toolArea.arrangeElements();

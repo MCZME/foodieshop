@@ -192,7 +192,19 @@ public class TradingManager {
         tradingData.addCurrencyItem(modId, itemStack, value);
     }
 
+    public static void addSellableItem(ItemStack itemStack, int value) {
+        tradingData.addSellableItem(itemStack, value);
+    }
+
+    public static void addCurrencyItem(ItemStack itemStack, int value) {
+        tradingData.addCurrencyItem(itemStack, value);
+    }
+
     public static void addFixedTrade(FixedTrade trade) {
         tradingData.addFixedTrade(trade);
+    }
+
+    public static void addModFolder(String modId) {
+        tradingData.addModData(modId);
     }
 }

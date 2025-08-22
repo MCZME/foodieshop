@@ -7,9 +7,17 @@ import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import mczme.foodieshop.api.trading.TradingManager; // 导入 TradingManager
+import net.minecraft.world.item.ItemStack; // 导入 ItemStack
+import net.minecraft.core.registries.Registries; // 导入 Registries
+import net.minecraft.resources.ResourceLocation; // 导入 ResourceLocation
+import net.minecraft.core.HolderLookup; // 导入 HolderLookup
+import net.minecraft.resources.ResourceKey; // 导入 ResourceKey
+import net.minecraft.world.item.Item; // 导入 Item
 
 public class AddItemPopupScreen extends Screen {
     private final Screen parent;
+    private String currentModId; // 新增成员变量
 
     private enum Mode { ITEM, MOD }
     private Mode currentMode = Mode.ITEM;
@@ -17,14 +25,21 @@ public class AddItemPopupScreen extends Screen {
     private static final int POPUP_WIDTH = 250;
     private static final int POPUP_HEIGHT = 180;
 
-    public AddItemPopupScreen(Screen parent) {
+    // 声明 EditBox 成员变量
+    private EditBox itemNameBox;
+    private EditBox itemValueBox;
+    private EditBox modNameBox;
+
+    public AddItemPopupScreen(Screen parent, String modId) { // 修改构造函数
         super(Component.translatable("foodieshop.config.trading_setting.popup.add_item_title"));
         this.parent = parent;
+        this.currentModId = modId; // 初始化 currentModId
     }
 
     @Override
     protected void init() {
         super.init();
+        this.clearWidgets(); // 清除旧的部件，防止重建时重复添加
 
         int left = (this.width - POPUP_WIDTH) / 2;
         int top = (this.height - POPUP_HEIGHT) / 2;
@@ -57,20 +72,62 @@ public class AddItemPopupScreen extends Screen {
 
         // --- 动态设置区域 ---
         if (currentMode == Mode.ITEM) {
-            EditBox itemNameBox = new EditBox(this.font, 0, 0, 100, 20, Component.translatable("foodieshop.config.trading_setting.popup.item_id"));
-            EditBox itemValueBox = new EditBox(this.font, 0, 0, 60, 20, Component.translatable("foodieshop.config.trading_setting.popup.price"));
+            itemNameBox = new EditBox(this.font, 0, 0, 100, 20, Component.translatable("foodieshop.config.trading_setting.popup.item_id"));
+            if (currentModId != null) { // 如果是模组页面，自动填充模组ID
+                itemNameBox.setValue(currentModId + ":");
+            }
+            itemValueBox = new EditBox(this.font, 0, 0, 60, 20, Component.translatable("foodieshop.config.trading_setting.popup.price"));
             GridLayout itemLayout = new GridLayout().columnSpacing(8);
             itemLayout.addChild(itemNameBox, 0, 0);
             itemLayout.addChild(itemValueBox, 0, 1);
             mainLayout.addChild(itemLayout, 1, 0);
         } else { // Mode.MOD
-            EditBox modNameBox = new EditBox(this.font, 0, 0, 170, 20, Component.translatable("foodieshop.config.trading_setting.popup.mod_id"));
+            modNameBox = new EditBox(this.font, 0, 0, 170, 20, Component.translatable("foodieshop.config.trading_setting.popup.mod_id"));
             mainLayout.addChild(modNameBox, 1, 0);
         }
 
         // --- 页脚按钮 ---
         Button saveButton = Button.builder(CommonComponents.GUI_DONE, button -> {
-            // TODO: 实现保存逻辑
+            if (this.minecraft != null && this.minecraft.level != null) {
+                HolderLookup.Provider registries = this.minecraft.level.registryAccess();
+                if (currentMode == Mode.ITEM) {
+                    String itemId = itemNameBox.getValue();
+                    String itemValueStr = itemValueBox.getValue();
+                    try {
+                        int value = Integer.parseInt(itemValueStr);
+                        ResourceLocation itemRL = ResourceLocation.tryParse(itemId);
+                        if (itemRL == null) {
+                            System.err.println("Invalid item ID format: " + itemId);
+                            return; // 或者显示错误消息给用户
+                        }
+                        // 将 ResourceLocation 转换为 ResourceKey<Item>
+                        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, itemRL);
+                        ItemStack itemStack = new ItemStack(registries.lookupOrThrow(Registries.ITEM).getOrThrow(itemKey));
+                        
+                        // 根据 currentModId 调用不同的 addSellableItem 方法
+                        if (currentModId == null) { // 全局页面
+                            TradingManager.addSellableItem(itemStack, value);
+                        } else { // 模组设置页面
+                            TradingManager.addSellableItem(currentModId, itemStack, value);
+                        }
+                    } catch (NumberFormatException e) {
+                        // TODO: 显示错误消息给用户
+                        System.err.println("Invalid number format for item value: " + itemValueStr);
+                    } catch (Exception e) {
+                        // TODO: 显示错误消息给用户
+                        System.err.println("Error adding item: " + e.getMessage());
+                    }
+                } else { // Mode.MOD
+                    String modId = modNameBox.getValue();
+                    try {
+                        TradingManager.addModFolder(modId);
+                        // TradingManager.reload(registries); // 移除 reload 调用
+                    } catch (Exception e) {
+                        // TODO: 显示错误消息给用户
+                        System.err.println("Error adding mod folder: " + e.getMessage());
+                    }
+                }
+            }
             this.onClose();
         }).build();
         Button cancelButton = Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).build();
@@ -91,9 +148,7 @@ public class AddItemPopupScreen extends Screen {
         this.parent.render(pGuiGraphics, -1, -1, pPartialTick);
         pGuiGraphics.fill(0, 0, this.width, this.height, 0x80000000);
 
-        int left = (this.width - POPUP_WIDTH) / 2;
         int top = (this.height - POPUP_HEIGHT) / 2;
-        pGuiGraphics.fill(left, top, left + POPUP_WIDTH, top + POPUP_HEIGHT, 0xFFC0C0C0);
 
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 

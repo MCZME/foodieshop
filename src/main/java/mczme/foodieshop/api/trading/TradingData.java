@@ -40,19 +40,29 @@ public class TradingData {
 
     public void addSellableItem(String modId, ItemStack itemStack, int value) {
         sellableItems.computeIfAbsent(modId, k -> new HashMap<>()).put(itemStack, value);
-        if (!modFolders.contains(modId)) {
-            modFolders.add(modId);
-        }
     }
 
     public void addCurrencyItem(String modId, ItemStack itemStack, int value) {
         currencyItems.computeIfAbsent(modId, k -> new HashMap<>()).put(itemStack, value);
-        if (!modFolders.contains(modId)) {
-            modFolders.add(modId);
-        }
+    }
+
+    public void addSellableItem(ItemStack itemStack, int value) {
+        addSellableItem("general", itemStack, value);
+    }
+
+    public void addCurrencyItem(ItemStack itemStack, int value) {
+        addCurrencyItem("general", itemStack, value);
     }
 
     public void addFixedTrade(FixedTrade trade) {
         fixedTrades.add(trade);
+    }
+
+    public void addModData(String modId) {
+        if (!modFolders.contains(modId)) {
+            modFolders.add(modId);
+        }
+        sellableItems.computeIfAbsent(modId, k -> new HashMap<>());
+        currencyItems.computeIfAbsent(modId, k -> new HashMap<>());
     }
 }
