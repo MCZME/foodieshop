@@ -1,6 +1,7 @@
 package mczme.foodieshop.screen;
 
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -28,7 +29,15 @@ public class CustomConfigScreen extends ConfigurationScreen.ConfigurationSection
                                 Component.translatable("foodieshop.config.trading_setting.button"),
                                 button -> {
                                     if (this.minecraft != null) {
-                                        this.minecraft.setScreen(new TradingSettingScreen(this));
+                                        if (this.minecraft.level != null) {
+                                            this.minecraft.setScreen(new TradingSettingScreen(this));
+                                        } else {
+                                            this.minecraft.setScreen(new ConfirmScreen(
+                                                    confirmed -> this.minecraft.setScreen(this),
+                                                    Component.translatable("foodieshop.config.trading_setting.no_world.title"),
+                                                    Component.translatable("foodieshop.config.trading_setting.no_world.message")
+                                            ));
+                                        }
                                     }
                                 }
                         ).build()

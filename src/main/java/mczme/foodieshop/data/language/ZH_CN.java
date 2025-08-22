@@ -108,6 +108,8 @@ public class ZH_CN extends LanguageProvider {
         add("foodieshop.config.reloaded", "交易配置已重新加载！");
         add("foodieshop.config.trading_setting.title", "交易设置");
         add("foodieshop.config.trading_setting.button", "交易设置...");
+        add("foodieshop.config.trading_setting.no_world.title", "需要加载世界");
+        add("foodieshop.config.trading_setting.no_world.message", "请先进入一个世界，然后再进行配置。");
 
         // 配置-交易配置
         add("foodieshop.config.trading_setting.button.global_settings", "全局设置");
@@ -119,6 +121,14 @@ public class ZH_CN extends LanguageProvider {
         add("foodieshop.config.trading_setting.search_placeholder", "搜索...");
         add("foodieshop.config.trading_setting.add_button", "添加");
         add("foodieshop.config.trading_setting.settings_button", "设置");
+
+        // 配置-交易配置-弹窗
+        add("foodieshop.config.trading_setting.popup.add_item_title", "添加新条目");
+        add("foodieshop.config.trading_setting.popup.item_mode", "物品添加");
+        add("foodieshop.config.trading_setting.popup.mod_mode", "模组添加");
+        add("foodieshop.config.trading_setting.popup.item_id", "物品ID");
+        add("foodieshop.config.trading_setting.popup.price", "价格");
+        add("foodieshop.config.trading_setting.popup.mod_id", "模组ID");
     }
 
 }
