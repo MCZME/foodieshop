@@ -121,7 +121,6 @@ public class AddItemPopupScreen extends Screen {
                     String modId = modNameBox.getValue();
                     try {
                         TradingManager.addModFolder(modId);
-                        // TradingManager.reload(registries); // 移除 reload 调用
                     } catch (Exception e) {
                         // TODO: 显示错误消息给用户
                         System.err.println("Error adding mod folder: " + e.getMessage());
@@ -157,6 +156,9 @@ public class AddItemPopupScreen extends Screen {
 
     @Override
     public void onClose() {
+        if (this.parent instanceof TradingSettingScreen) {
+            ((TradingSettingScreen) this.parent).refreshScreen();
+        }
         this.minecraft.setScreen(this.parent);
     }
 }

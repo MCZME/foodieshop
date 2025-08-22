@@ -242,4 +242,9 @@ public class TradingSettingScreen extends Screen {
         this.infoScrollWidget.setContents(infoContent);
         this.infoScrollWidget.setScrollAmount(this.infoScrollWidget.scrollAmount()); // 重建内容后，将滚动量限制在新的最大值内。
     }
+
+    public void refreshScreen() {
+        this.createDropdowns();
+        this.refreshNavLayout();
+    }
 }

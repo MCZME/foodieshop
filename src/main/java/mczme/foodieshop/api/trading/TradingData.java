@@ -61,8 +61,8 @@ public class TradingData {
     public void addModData(String modId) {
         if (!modFolders.contains(modId)) {
             modFolders.add(modId);
+            sellableItems.computeIfAbsent(modId, k -> new HashMap<>());
+            currencyItems.computeIfAbsent(modId, k -> new HashMap<>());
         }
-        sellableItems.computeIfAbsent(modId, k -> new HashMap<>());
-        currencyItems.computeIfAbsent(modId, k -> new HashMap<>());
     }
 }
