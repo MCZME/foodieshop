@@ -26,11 +26,7 @@ public class TradingManager {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final File CONFIG_DIR = new File("config/" + FoodieShop.MODID + "/trading");
-
-    private static final Map<String, Map<ItemStack, Integer>> sellableItems = new HashMap<>();
-    private static final Map<String, Map<ItemStack, Integer>> currencyItems = new HashMap<>();
-    private static final List<FixedTrade> fixedTrades = new ArrayList<>();
-    private static final List<String> modFolders = new ArrayList<>();
+    private static final TradingData tradingData = new TradingData();
 
     public static void load(HolderLookup.Provider registries) {
         if (!CONFIG_DIR.exists() && !CONFIG_DIR.mkdirs()) {
@@ -67,10 +63,7 @@ public class TradingManager {
     }
 
     private static void clearConfigs() {
-        sellableItems.clear();
-        currencyItems.clear();
-        fixedTrades.clear();
-        modFolders.clear();
+        tradingData.clear();
     }
 
     private static void createExampleDirectory(HolderLookup.Provider registries) {
@@ -78,14 +71,14 @@ public class TradingManager {
         if (!exampleDir.exists()) {
             exampleDir.mkdirs();
             // 在示例目录中创建文件，以展示覆盖功能
-            loadItemValueFromFile(new File(exampleDir, "sellable_items.json"), "minecraft", sellableItems, registries);
-            loadItemValueFromFile(new File(exampleDir, "currency_items.json"), "minecraft", currencyItems, registries);
+            loadItemValueFromFile(new File(exampleDir, "sellable_items.json"), "minecraft", tradingData.getSellableItems(), registries);
+            loadItemValueFromFile(new File(exampleDir, "currency_items.json"), "minecraft", tradingData.getCurrencyItems(), registries);
         }
     }
 
     private static void loadGeneralConfigs(HolderLookup.Provider registries) {
-        loadItemValueFromFile(new File(CONFIG_DIR, "general_sellable_items.json"), "general", sellableItems, registries);
-        loadItemValueFromFile(new File(CONFIG_DIR, "general_currency_items.json"), "general", currencyItems, registries);
+        loadItemValueFromFile(new File(CONFIG_DIR, "general_sellable_items.json"), "general", tradingData.getSellableItems(), registries);
+        loadItemValueFromFile(new File(CONFIG_DIR, "general_currency_items.json"), "general", tradingData.getCurrencyItems(), registries);
     }
 
     private static void loadModSpecificConfigs(HolderLookup.Provider registries) {
@@ -93,14 +86,14 @@ public class TradingManager {
         if (subDirs != null) {
             for (File subDir : subDirs) {
                 String modId = subDir.getName();
-                modFolders.add(modId);
+                tradingData.getModFolders().add(modId);
                 File modSellableFile = new File(subDir, "sellable_items.json");
                 if (modSellableFile.exists()) {
-                    loadItemValueFromFile(modSellableFile, modId, sellableItems, registries);
+                    loadItemValueFromFile(modSellableFile, modId, tradingData.getSellableItems(), registries);
                 }
                 File modCurrencyFile = new File(subDir, "currency_items.json");
                 if (modCurrencyFile.exists()) {
-                    loadItemValueFromFile(modCurrencyFile, modId, currencyItems, registries);
+                    loadItemValueFromFile(modCurrencyFile, modId, tradingData.getCurrencyItems(), registries);
                 }
             }
         }
@@ -156,7 +149,7 @@ public class TradingManager {
             Type type = new TypeToken<List<FixedTrade>>() {}.getType();
             List<FixedTrade> loadedTrades = GSON.fromJson(reader, type);
             if (loadedTrades != null) {
-                fixedTrades.addAll(loadedTrades);
+                tradingData.getFixedTrades().addAll(loadedTrades);
             }
         } catch (IOException e) {
             LOGGER.error("无法加载 fixed_trades.json", e);
@@ -164,30 +157,42 @@ public class TradingManager {
     }
 
     public static Map<ItemStack, Integer> getSellableItems(String modId) {
-        return sellableItems.getOrDefault(modId, new HashMap<>());
+        return tradingData.getSellableItems().getOrDefault(modId, new HashMap<>());
     }
 
     public static Map<ItemStack, Integer> getCurrencyItems(String modId) {
-        return currencyItems.getOrDefault(modId, new HashMap<>());
+        return tradingData.getCurrencyItems().getOrDefault(modId, new HashMap<>());
     }
 
     public static Map<ItemStack, Integer> getAllSellableItems() {
         Map<ItemStack, Integer> allItems = new HashMap<>();
-        sellableItems.values().forEach(allItems::putAll);
+        tradingData.getSellableItems().values().forEach(allItems::putAll);
         return allItems;
     }
 
     public static Map<ItemStack, Integer> getAllCurrencyItems() {
         Map<ItemStack, Integer> allItems = new HashMap<>();
-        currencyItems.values().forEach(allItems::putAll);
+        tradingData.getCurrencyItems().values().forEach(allItems::putAll);
         return allItems;
     }
 
     public static List<FixedTrade> getFixedTrades() {
-        return fixedTrades;
+        return tradingData.getFixedTrades();
     }
 
     public static List<String> getModFolders() {
-        return modFolders;
+        return tradingData.getModFolders();
+    }
+
+    public static void addSellableItem(String modId, ItemStack itemStack, int value) {
+        tradingData.addSellableItem(modId, itemStack, value);
+    }
+
+    public static void addCurrencyItem(String modId, ItemStack itemStack, int value) {
+        tradingData.addCurrencyItem(modId, itemStack, value);
+    }
+
+    public static void addFixedTrade(FixedTrade trade) {
+        tradingData.addFixedTrade(trade);
     }
 }
