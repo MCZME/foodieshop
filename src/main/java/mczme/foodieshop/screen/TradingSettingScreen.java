@@ -7,7 +7,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.StringWidget;
 import mczme.foodieshop.screen.widget.DropdownMenuWidget;
-import mczme.foodieshop.screen.widget.ItemDisplayWidget; // 导入新的ItemDisplayWidget
+import mczme.foodieshop.screen.widget.ItemDisplayWidget;
 import mczme.foodieshop.screen.widget.ScrollWidget;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;

@@ -101,6 +101,11 @@ public class ZH_CN extends LanguageProvider {
         add("gui.foodieshop.shop_config.legend.waypoint", "路径点");
 
         // 配置
+        add("foodieshop.configuration.title", "FoodieShop 配置");
+        add("foodieshop.configuration.canModifyTradingConfig", "是否允许修改交易配置");
+        add("foodieshop.configuration.section.foodieshop.trading.server.toml", "FoodieShop 服务器配置");
+        add("foodieshop.configuration.section.foodieshop.trading.server.toml.title", "FoodieShop 服务器配置");
+        add("foodieshop.configuration.canModifyTradingConfig.tooltip", "是否允许修改交易配置");
         add("foodieshop.config.title", "FoodieShop 交易配置");
         add("foodieshop.config.reload", "重新加载");
         add("foodieshop.config.reload_trading", "重新加载交易配置");

@@ -15,33 +15,39 @@ import java.util.Collections;
 @OnlyIn(Dist.CLIENT)
 public class CustomConfigScreen extends ConfigurationScreen.ConfigurationSectionScreen {
 
+    private final ModConfig.Type configType;
+
     public CustomConfigScreen(Screen parent, ModConfig.Type type, ModConfig modConfig, Component title) {
         super(parent, type, modConfig, title);
+        this.configType = type;
     }
 
     @Override
     protected Collection<? extends Element> createSyntheticValues() {
-        return Collections.singletonList(
-                new Element(
-                        Component.translatable("foodieshop.config.trading_setting.title"),
-                        Component.empty(),
-                        Button.builder(
-                                Component.translatable("foodieshop.config.trading_setting.button"),
-                                button -> {
-                                    if (this.minecraft != null) {
-                                        if (this.minecraft.level != null) {
-                                            this.minecraft.setScreen(new TradingSettingScreen(this));
-                                        } else {
-                                            this.minecraft.setScreen(new ConfirmScreen(
-                                                    confirmed -> this.minecraft.setScreen(this),
-                                                    Component.translatable("foodieshop.config.trading_setting.no_world.title"),
-                                                    Component.translatable("foodieshop.config.trading_setting.no_world.message")
-                                            ));
+        if (this.configType == ModConfig.Type.COMMON) {
+            return Collections.singletonList(
+                    new Element(
+                            Component.translatable("foodieshop.config.trading_setting.title"),
+                            Component.empty(),
+                            Button.builder(
+                                    Component.translatable("foodieshop.config.trading_setting.button"),
+                                    button -> {
+                                        if (this.minecraft != null) {
+                                            if (this.minecraft.level != null) {
+                                                this.minecraft.setScreen(new TradingSettingScreen(this));
+                                            } else {
+                                                this.minecraft.setScreen(new ConfirmScreen(
+                                                        confirmed -> this.minecraft.setScreen(this),
+                                                        Component.translatable("foodieshop.config.trading_setting.no_world.title"),
+                                                        Component.translatable("foodieshop.config.trading_setting.no_world.message")
+                                                ));
+                                            }
                                         }
                                     }
-                                }
-                        ).build()
-                )
-        );
+                            ).build()
+                    )
+            );
+        }
+        return Collections.emptyList();
     }
 }
