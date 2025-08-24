@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Vector2d;
-
+import mczme.foodieshop.network.packet.c2s.TogglePathNodeModePacket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +45,8 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     private EditBox shopNameEditBox;
     private List<ItemStack> stockContents = new ArrayList<>();
     private Set<Item> menuItems;
+    private long lastClickTime = 0;
+    private BlockPos lastClickedPos = null;
 
     public ShopConfigScreen(ShopConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -333,7 +335,13 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         for (BlockPos waypoint : config.getPathGraph().getNodes()) {
             Vector2d currentPos = worldToScreen(waypoint, center);
             float size = zoom * 0.6f;
-            guiGraphics.fill((int) (currentPos.x - size / 2), (int) (currentPos.y - size / 2), (int) (currentPos.x + size / 2), (int) (currentPos.y + size / 2), 0xFF0000FF);
+            int color = 0xFF0000FF; // 默认颜色：蓝色
+            if (waypoint.equals(config.getPathGraph().getEntry())) {
+                color = 0xFF00FF00; // 人口颜色：绿色
+            } else if (waypoint.equals(config.getPathGraph().getExit())) {
+                color = 0xFFFF0000; // 出口颜色：红色
+            }
+            guiGraphics.fill((int) (currentPos.x - size / 2), (int) (currentPos.y - size / 2), (int) (currentPos.x + size / 2), (int) (currentPos.y + size / 2), color);
             if (selectedElement != null && selectedElement.type == ElementType.WAYPOINT && selectedElement.element.equals(waypoint)) {
                 guiGraphics.renderOutline((int) (currentPos.x - size / 2 - 1), (int) (currentPos.y - size / 2 - 1), (int) size + 2, (int) size + 2, 0xFFFFFF00);
             }
@@ -346,8 +354,8 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         int areaWidth = this.imageWidth - 20;
         int areaHeight = this.imageHeight - 60;
 
-        int legendWidth = 84;
-        int legendHeight = 74;
+        int legendWidth = 80;
+        int legendHeight = 95;
         int x = areaX + areaWidth - legendWidth + 10;
         int y = areaY + areaHeight - legendHeight - 15;
 
@@ -384,6 +392,14 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
         int waypointIconOffset = (iconSize - waypointIconSize) / 2;
         guiGraphics.fill(x + waypointIconOffset, currentY + waypointIconOffset, x + waypointIconSize, currentY + waypointIconSize, 0xFF0000FF);
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.waypoint"), x + iconSize + 4, currentY, 0x404040, false);
+        currentY += spacing;
+
+        guiGraphics.fill(x + waypointIconOffset, currentY + waypointIconOffset, x + waypointIconSize, currentY + waypointIconSize, 0xFF00FF00);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.entry"), x + iconSize + 4, currentY, 0x404040, false);
+        currentY += spacing;
+
+        guiGraphics.fill(x + waypointIconOffset, currentY + waypointIconOffset, x + waypointIconSize, currentY + waypointIconSize, 0xFFFF0000);
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.legend.exit"), x + iconSize + 4, currentY, 0x404040, false);
     }
 
     private void initMenuInventoryWidgets() {
@@ -402,7 +418,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     }
 
     private void renderMenuInventory(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        // Render stock contents
+        // 渲染 库存
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.stock"), this.leftPos + 10, this.topPos + 35, 0x404040, false);
         int stockX = this.leftPos + 10;
         int stockY = this.topPos + 45;
@@ -414,7 +430,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
             guiGraphics.renderItemDecorations(this.font, stack, x, y);
 
             if (this.menuItems.contains(stack.getItem())) {
-                guiGraphics.fill(x, y, x + 16, y + 16, 0x8000FF00); // Green overlay for selected items
+                guiGraphics.fill(x, y, x + 16, y + 16, 0x8000FF00); //选择物品绿色覆盖
             }
         }
     }
@@ -500,7 +516,18 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 for (BlockPos waypoint : config.getPathGraph().getNodes()) {
                     Vector2d pos = worldToScreen(waypoint, center);
                     if (Math.abs(pos.x - mouseX) < zoom * 0.3f && Math.abs(pos.y - mouseY) < zoom * 0.3f) {
-                        selectedElement = new SelectedElement(ElementType.WAYPOINT, waypoint);
+                        long time = System.currentTimeMillis();
+                        if (time - lastClickTime < 250 && waypoint.equals(lastClickedPos)) {
+                            // 双击
+                            if (Minecraft.getInstance().getConnection() != null) {
+                                Minecraft.getInstance().getConnection().send(new TogglePathNodeModePacket(this.blockEntity.getBlockPos(), waypoint));
+                            }
+                        } else {
+                            // 单击
+                            selectedElement = new SelectedElement(ElementType.WAYPOINT, waypoint);
+                        }
+                        lastClickTime = time;
+                        lastClickedPos = waypoint;
                         return true;
                     }
                 }

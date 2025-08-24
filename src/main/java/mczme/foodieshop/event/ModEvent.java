@@ -11,6 +11,7 @@ import mczme.foodieshop.entity.FoodieEntity;
 import mczme.foodieshop.network.packet.c2s.ReloadTradingDataPacket;
 import mczme.foodieshop.network.packet.c2s.RequestStockContentsPacket;
 import mczme.foodieshop.network.packet.c2s.ResetLayoutPacket;
+import mczme.foodieshop.network.packet.c2s.TogglePathNodeModePacket;
 import mczme.foodieshop.network.packet.c2s.UpdateShopConfigPacket;
 import mczme.foodieshop.network.packet.s2c.UpdateStockContentsPacket;
 import mczme.foodieshop.registry.ModEntityTypes;
@@ -77,6 +78,11 @@ public class ModEvent {
                 ReloadTradingDataPacket.TYPE,
                 ReloadTradingDataPacket.STREAM_CODEC,
                 ReloadTradingDataPacket::handle
+        );
+        registrar.playToServer(
+                TogglePathNodeModePacket.TYPE,
+                TogglePathNodeModePacket.STREAM_CODEC,
+                TogglePathNodeModePacket::handle
         );
 
         // 注册服务器到客户端的数据包

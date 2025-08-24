@@ -221,7 +221,13 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
         VertexConsumer lineConsumer = bufferSource.getBuffer(CustomRenderTypes.LINES_NO_DEPTH);
         // 渲染节点
         for (BlockPos node : config.getPathGraph().getNodes()) {
-            renderPathNodeMarker(poseStack, lineConsumer, node, 0.0F, 0.0F, 1.0F, origin); // 蓝色
+            if (node.equals(config.getPathGraph().getEntry())) {
+                renderPathNodeMarker(poseStack, lineConsumer, node, 0.0F, 1.0F, 0.0F, origin); // Green for entry
+            } else if (node.equals(config.getPathGraph().getExit())) {
+                renderPathNodeMarker(poseStack, lineConsumer, node, 1.0F, 0.0F, 0.0F, origin); // Red for exit
+            } else {
+                renderPathNodeMarker(poseStack, lineConsumer, node, 0.0F, 0.0F, 1.0F, origin); // Blue for normal nodes
+            }
         }
     }
 

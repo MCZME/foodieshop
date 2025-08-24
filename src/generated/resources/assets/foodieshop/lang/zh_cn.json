@@ -36,6 +36,8 @@
   "gui.foodieshop.save": "保存",
   "gui.foodieshop.shop_config.legend.cashier_desk": "收银台",
   "gui.foodieshop.shop_config.legend.delivery_box": "收货箱",
+  "gui.foodieshop.shop_config.legend.entry": "入口",
+  "gui.foodieshop.shop_config.legend.exit": "出口",
   "gui.foodieshop.shop_config.legend.inventory": "库存",
   "gui.foodieshop.shop_config.legend.seat": "座位",
   "gui.foodieshop.shop_config.legend.table": "桌子",

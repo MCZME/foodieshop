@@ -99,6 +99,8 @@ public class ZH_CN extends LanguageProvider {
         add("gui.foodieshop.shop_config.legend.delivery_box", "收货箱");
         add("gui.foodieshop.shop_config.legend.cashier_desk", "收银台");
         add("gui.foodieshop.shop_config.legend.waypoint", "路径点");
+        add("gui.foodieshop.shop_config.legend.entry", "入口");
+        add("gui.foodieshop.shop_config.legend.exit", "出口");
 
         // 配置
         add("foodieshop.configuration.title", "FoodieShop 配置");

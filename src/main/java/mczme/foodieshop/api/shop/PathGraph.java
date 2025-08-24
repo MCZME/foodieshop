@@ -13,15 +13,19 @@ import java.util.Objects;
 public class PathGraph {
     private final List<BlockPos> nodes;
     private final List<List<BlockPos>> edges;
+    private BlockPos entry;
+    private BlockPos exit;
 
     public PathGraph() {
         this.nodes = new ArrayList<>();
         this.edges = new ArrayList<>();
     }
 
-    private PathGraph(List<BlockPos> nodes, List<List<BlockPos>> edges) {
+    private PathGraph(List<BlockPos> nodes, List<List<BlockPos>> edges, BlockPos entry, BlockPos exit) {
         this.nodes = nodes;
         this.edges = edges;
+        this.entry = entry;
+        this.exit = exit;
     }
 
     public List<BlockPos> getNodes() {
@@ -49,6 +53,12 @@ public class PathGraph {
     public void removeNode(BlockPos pos) {
         if (nodes.remove(pos)) {
             edges.removeIf(edge -> edge.contains(pos));
+        }
+        if (pos.equals(entry)) {
+            entry = null;
+        }
+        if (pos.equals(exit)) {
+            exit = null;
         }
     }
 
@@ -91,6 +101,14 @@ public class PathGraph {
             }
         }
         tag.put("edges", edgeList);
+
+        if (entry != null) {
+            BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, entry).result().ifPresent(entryTag -> tag.put("entry", entryTag));
+        }
+        if (exit != null) {
+            BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, exit).result().ifPresent(exitTag -> tag.put("exit", exitTag));
+        }
+
         return tag;
     }
 
@@ -113,6 +131,53 @@ public class PathGraph {
                 }
             }
         }
-        return new PathGraph(nodes, edges);
+
+        BlockPos entry = null;
+        if (tag.contains("entry")) {
+            entry = BlockPos.CODEC.parse(NbtOps.INSTANCE, tag.get("entry")).result().orElse(null);
+        }
+
+        BlockPos exit = null;
+        if (tag.contains("exit")) {
+            exit = BlockPos.CODEC.parse(NbtOps.INSTANCE, tag.get("exit")).result().orElse(null);
+        }
+
+        return new PathGraph(nodes, edges, entry, exit);
+    }
+
+    public BlockPos getEntry() {
+        return entry;
+    }
+
+    public void setEntry(BlockPos entry) {
+        this.entry = entry;
+    }
+
+    public BlockPos getExit() {
+        return exit;
+    }
+
+    public void setExit(BlockPos exit) {
+        this.exit = exit;
+    }
+
+    public void toggleNodeMode(BlockPos pos) {
+        if (!hasNode(pos)) {
+            return;
+        }
+
+        boolean hasEntry = (entry != null);
+        boolean hasExit = (exit != null);
+        if (hasEntry && hasExit) {
+            setEntry(pos);
+            setExit(pos);
+        } else if (pos.equals(entry)) {
+            setEntry(null);
+            setExit(pos);
+        } else if (pos.equals(exit)) {
+            setExit(null);
+        } else {
+            setEntry(pos);
+        }
     }
 }

@@ -251,6 +251,12 @@ public class ShopConfig {
         this.menuItems = menuItems;
     }
 
+    public void togglePathNodeMode(BlockPos pos) {
+        if (this.pathGraph != null) {
+            this.pathGraph.toggleNodeMode(pos);
+        }
+    }
+
     public boolean isPositionOccupied(BlockPos pos) {
         if (this.cashierDeskLocation.equals(pos)) {
             return true;
