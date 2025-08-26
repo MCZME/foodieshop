@@ -24,8 +24,8 @@ public class ScrollWidget extends AbstractWidget implements Renderable, GuiEvent
         ResourceLocation.withDefaultNamespace("widget/text_field"), ResourceLocation.withDefaultNamespace("widget/text_field_highlighted")
     );
     private static final ResourceLocation SCROLLER_SPRITE = ResourceLocation.withDefaultNamespace("widget/scroller");
-    private static final int INNER_PADDING = 4;
-    private static final int SCROLL_BAR_WIDTH = 8;
+    public static final int INNER_PADDING = 4;
+    public static final int SCROLL_BAR_WIDTH = 8;
 
     private LinearLayout contents;
     private GuiEventListener clickedWidget;
@@ -184,6 +184,7 @@ public class ScrollWidget extends AbstractWidget implements Renderable, GuiEvent
     protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.contents.setX(this.getX() + INNER_PADDING);
         this.contents.setY(this.getY() + INNER_PADDING);
+        this.contents.arrangeElements(); // 添加这一行
         this.contents.visitWidgets(widget -> {
             if (widget instanceof Renderable) {
                 ((Renderable)widget).render(guiGraphics, mouseX, mouseY, partialTick);

@@ -13,7 +13,9 @@ import mczme.foodieshop.network.packet.c2s.RequestStockContentsPacket;
 import mczme.foodieshop.network.packet.c2s.ResetLayoutPacket;
 import mczme.foodieshop.network.packet.c2s.TogglePathNodeModePacket;
 import mczme.foodieshop.network.packet.c2s.UpdateShopConfigPacket;
+import mczme.foodieshop.network.packet.c2s.ValidateShopPacket;
 import mczme.foodieshop.network.packet.s2c.UpdateStockContentsPacket;
+import mczme.foodieshop.network.packet.s2c.ValidateShopResultPacket;
 import mczme.foodieshop.registry.ModEntityTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
@@ -84,12 +86,22 @@ public class ModEvent {
                 TogglePathNodeModePacket.STREAM_CODEC,
                 TogglePathNodeModePacket::handle
         );
+        registrar.playToServer(
+                ValidateShopPacket.TYPE,
+                ValidateShopPacket.STREAM_CODEC,
+                ValidateShopPacket::handle
+        );
 
         // 注册服务器到客户端的数据包
         registrar.playToClient(
                 UpdateStockContentsPacket.TYPE,
                 UpdateStockContentsPacket.STREAM_CODEC,
                 UpdateStockContentsPacket::handle
+        );
+        registrar.playToClient(
+                ValidateShopResultPacket.TYPE,
+                ValidateShopResultPacket.STREAM_CODEC,
+                ValidateShopResultPacket::handle
         );
     }
 
