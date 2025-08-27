@@ -28,11 +28,13 @@ public class ShopPathPenItem extends ShopEditPenItem {
 
     @Override
     protected InteractionResult handleInteraction(Player player, ItemStack stack, CashierDeskBlockEntity cashierDesk, BlockPos clickedPos, Level level) {
+        BlockPos targetPos = clickedPos.above(); // 默认选择方块上面的位置
+
         if (!cashierDesk.isShopAreaSet()) {
             player.sendSystemMessage(Component.translatable("message.foodieshop.shop_area_not_set"));
             return InteractionResult.FAIL;
         }
-        if (!cashierDesk.isPosInShopArea(clickedPos)) {
+        if (!cashierDesk.isPosInShopArea(targetPos)) { // 使用 targetPos
             player.sendSystemMessage(Component.translatable("message.foodieshop.pos_not_in_area"));
             return InteractionResult.FAIL;
         }
@@ -42,9 +44,9 @@ public class ShopPathPenItem extends ShopEditPenItem {
         Optional<BlockPos> connectionStartNodeOpt = getConnectionStartNode(tag);
 
         if (connectionStartNodeOpt.isPresent()) {
-            handleInteractionWithSelection(player, tag, pathGraph, clickedPos, connectionStartNodeOpt.get());
+            handleInteractionWithSelection(player, tag, pathGraph, targetPos, connectionStartNodeOpt.get()); // 使用 targetPos
         } else {
-            handleInteractionWithoutSelection(player, tag, pathGraph, clickedPos, cashierDesk);
+            handleInteractionWithoutSelection(player, tag, pathGraph, targetPos, cashierDesk); // 使用 targetPos
         }
 
         cashierDesk.getShopConfig().setPathGraph(pathGraph);
@@ -52,17 +54,17 @@ public class ShopPathPenItem extends ShopEditPenItem {
         return InteractionResult.SUCCESS;
     }
 
-    private void handleInteractionWithSelection(Player player, CompoundTag tag, PathGraph pathGraph, BlockPos clickedPos, BlockPos startNode) {
-        if (startNode.equals(clickedPos)) {
+    private void handleInteractionWithSelection(Player player, CompoundTag tag, PathGraph pathGraph, BlockPos targetPos, BlockPos startNode) { // 使用 targetPos
+        if (startNode.equals(targetPos)) { // 使用 targetPos
             pathGraph.removeNode(startNode);
             player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_node_removed", startNode.getX(), startNode.getY(), startNode.getZ()));
-        } else if (pathGraph.hasNode(clickedPos)) {
-            if (pathGraph.hasEdge(startNode, clickedPos)) {
-                pathGraph.removeEdge(startNode, clickedPos);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_edge_removed", startNode.getX(), startNode.getY(), startNode.getZ(), clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+        } else if (pathGraph.hasNode(targetPos)) { // 使用 targetPos
+            if (pathGraph.hasEdge(startNode, targetPos)) { // 使用 targetPos
+                pathGraph.removeEdge(startNode, targetPos); // 使用 targetPos
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_edge_removed", startNode.getX(), startNode.getY(), startNode.getZ(), targetPos.getX(), targetPos.getY(), targetPos.getZ())); // 使用 targetPos
             } else {
-                pathGraph.addEdge(startNode, clickedPos);
-                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_edge_created", startNode.getX(), startNode.getY(), startNode.getZ(), clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+                pathGraph.addEdge(startNode, targetPos); // 使用 targetPos
+                player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_edge_created", startNode.getX(), startNode.getY(), startNode.getZ(), targetPos.getX(), targetPos.getY(), targetPos.getZ())); // 使用 targetPos
             }
         } else {
             player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_connection_cancelled"));
@@ -70,17 +72,17 @@ public class ShopPathPenItem extends ShopEditPenItem {
         clearConnectionStartNode(tag);
     }
 
-    private void handleInteractionWithoutSelection(Player player, CompoundTag tag, PathGraph pathGraph, BlockPos clickedPos, CashierDeskBlockEntity cashierDesk) {
-        if (pathGraph.hasNode(clickedPos)) {
-            setConnectionStartNode(tag, clickedPos);
-            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_connection_start", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+    private void handleInteractionWithoutSelection(Player player, CompoundTag tag, PathGraph pathGraph, BlockPos targetPos, CashierDeskBlockEntity cashierDesk) { // 使用 targetPos
+        if (pathGraph.hasNode(targetPos)) { // 使用 targetPos
+            setConnectionStartNode(tag, targetPos); // 使用 targetPos
+            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_connection_start", targetPos.getX(), targetPos.getY(), targetPos.getZ())); // 使用 targetPos
         } else {
-            if (cashierDesk.getShopConfig().isPositionOccupied(clickedPos)) {
+            if (cashierDesk.getShopConfig().isPositionOccupied(targetPos)) { // 使用 targetPos
                 player.sendSystemMessage(Component.translatable("message.foodieshop.pos_already_occupied"));
                 return;
             }
-            pathGraph.addNode(clickedPos);
-            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_node_added", clickedPos.getX(), clickedPos.getY(), clickedPos.getZ()));
+            pathGraph.addNode(targetPos); // 使用 targetPos
+            player.sendSystemMessage(Component.translatable("message.foodieshop.diner_blueprint_pen.path_node_added", targetPos.getX(), targetPos.getY(), targetPos.getZ())); // 使用 targetPos
         }
     }
 

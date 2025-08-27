@@ -163,7 +163,7 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
 
     private void renderPathNodeMarker(PoseStack poseStack, VertexConsumer consumer,
                                       BlockPos pos, float r, float g, float b, BlockPos origin) {
-        double yCenter = pos.getY() + 1.01f + MARKER_SIZE - origin.getY();
+        double yCenter = pos.getY() + 0.01 + MARKER_SIZE - origin.getY();
         double xCenter = pos.getX() + 0.5 - origin.getX();
         double zCenter = pos.getZ() + 0.5 - origin.getZ();
 
@@ -194,7 +194,7 @@ public class ShopLayoutRenderer implements BlockEntityRenderer<CashierDeskBlockE
                 BlockPos pos2 = edge.get(1);
 
                 // 路径总是直的，所以X或Z坐标总有一个是相同的。
-                float y = pos1.getY() - origin.getY() + 1.01f; // 略高于方块顶面
+                float y = pos1.getY() - origin.getY() + 0.01f; // 略高于方块顶面
 
                 float minX, maxX, minZ, maxZ;
 
