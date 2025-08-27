@@ -150,8 +150,7 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                                 if (seat.isValid()) {
                                     boolean adjacentToPath = false;
                                     for (List<BlockPos> edge : pathGraph.getEdges()) {
-                                        if (isHorizontallyAdjacent(seat.getLocation(), edge.get(0)) ||
-                                            isHorizontallyAdjacent(seat.getLocation(), edge.get(1))) {
+                                        if (isHorizontallyAdjacentToEdge(seat.getLocation(), edge.get(0), edge.get(1))) {
                                             adjacentToPath = true;
                                             break;
                                         }
@@ -187,11 +186,37 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
     }
 
     /**
-     * 检查两个BlockPos是否在水平方向上相邻（东南西北四个方向，Y坐标相同，X/Z平面曼哈顿距离为1）。
+     * 检查一个点是否与由两个端点定义的线段水平相邻。
+     * 假设边是轴对齐的（沿着X轴或Z轴）。
      */
-    private static boolean isHorizontallyAdjacent(BlockPos pos1, BlockPos pos2) {
-        return pos1.getY() == pos2.getY() &&
-               (Math.abs(pos1.getX() - pos2.getX()) + Math.abs(pos1.getZ() - pos2.getZ()) == 1);
+    private static boolean isHorizontallyAdjacentToEdge(BlockPos point, BlockPos edgeStart, BlockPos edgeEnd) {
+        // 确保Y坐标相同
+        if (point.getY() != edgeStart.getY() || point.getY() != edgeEnd.getY()) {
+            return false;
+        }
+
+        // 检查点是否与线段水平相邻
+        // 沿着X轴的边
+        if (edgeStart.getZ() == edgeEnd.getZ()) {
+            // 检查点的Z坐标是否与边的Z坐标水平相邻
+            if (Math.abs(point.getZ() - edgeStart.getZ()) == 1) {
+                // 检查点的X坐标是否在线段的X坐标范围内
+                int minX = Math.min(edgeStart.getX(), edgeEnd.getX());
+                int maxX = Math.max(edgeStart.getX(), edgeEnd.getX());
+                return point.getX() >= minX && point.getX() <= maxX;
+            }
+        }
+        // 沿着Z轴的边
+        else if (edgeStart.getX() == edgeEnd.getX()) {
+            // 检查点的X坐标是否与边的X坐标水平相邻
+            if (Math.abs(point.getX() - edgeStart.getX()) == 1) {
+                // 检查点的Z坐标是否在线段的Z坐标范围内
+                int minZ = Math.min(edgeStart.getZ(), edgeEnd.getZ());
+                int maxZ = Math.max(edgeStart.getZ(), edgeEnd.getZ());
+                return point.getZ() >= minZ && point.getZ() <= maxZ;
+            }
+        }
+        return false;
     }
 
     /**

@@ -295,8 +295,7 @@ public class ShopConfig {
     public void validateLayout() {
         for (SeatInfo seat : this.seatLocations) {
             boolean isConnectedToTable = seat.getBoundTableId() != null;
-            boolean isConnectedToPath = this.pathGraph.isNode(seat.getLocation());
-            seat.setValid(isConnectedToTable && isConnectedToPath);
+            seat.setValid(isConnectedToTable);
         }
 
         for (TableInfo table : this.tableLocations) {

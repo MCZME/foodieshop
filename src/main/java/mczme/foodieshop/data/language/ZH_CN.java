@@ -140,6 +140,10 @@ public class ZH_CN extends LanguageProvider {
         add("foodieshop.config.trading_setting.popup.mod_id", "模组ID");
 
         // 验证消息
+        add("gui.foodieshop.shop_config.validation_success", "验证成功");
+        add("gui.foodieshop.shop_config.validation_warning", "验证警告");
+        add("gui.foodieshop.shop_config.validation_failure", "验证失败");
+        add("gui.foodieshop.shop_config.validation_unknown", "未知验证状态");
         add("foodieshop.validation.success", "店铺验证成功！");
         add("foodieshop.validation.warning.no_path", "警告：未设置路径，顾客可能无法移动。");
         add("foodieshop.validation.error.no_cashier", "错误：未设置收银台。");

@@ -179,7 +179,7 @@ public class ShopLayoutWidget {
         int areaWidth = this.screenImageWidth - 20;
         int areaHeight = this.screenImageHeight - 60;
 
-        int legendWidth = 80;
+        int legendWidth = 60;
         int legendHeight = 95;
         int x = areaX + areaWidth - legendWidth + 10;
         int y = areaY + areaHeight - legendHeight - 15;

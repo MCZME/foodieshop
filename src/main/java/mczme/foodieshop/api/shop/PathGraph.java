@@ -166,12 +166,7 @@ public class PathGraph {
             return;
         }
 
-        boolean hasEntry = (entry != null);
-        boolean hasExit = (exit != null);
-        if (hasEntry && hasExit) {
-            setEntry(pos);
-            setExit(pos);
-        } else if (pos.equals(entry)) {
+        if (pos.equals(entry)) {
             setEntry(null);
             setExit(pos);
         } else if (pos.equals(exit)) {
