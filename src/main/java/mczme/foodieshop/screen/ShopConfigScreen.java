@@ -223,13 +223,9 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.currentTab == Tabs.LAYOUT) {
-            if (this.shopLayoutWidget.mouseClicked(mouseX, mouseY, button)) {
-                return true;
-            }
+            this.shopLayoutWidget.mouseClicked(mouseX, mouseY, button);
         } else if (this.currentTab == Tabs.MENU_INVENTORY) {
-            if (this.shopMenuInventoryWidget.mouseClicked(mouseX, mouseY, button)) {
-                return true;
-            }
+            this.shopMenuInventoryWidget.mouseClicked(mouseX, mouseY, button);
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -237,9 +233,9 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (this.currentTab == Tabs.LAYOUT) {
-            if (this.shopLayoutWidget.mouseReleased(mouseX, mouseY, button)) {
-                return true;
-            }
+            this.shopLayoutWidget.mouseReleased(mouseX, mouseY, button);
+        } else if (this.currentTab == Tabs.MENU_INVENTORY) {
+            // ShopMenuInventoryWidget doesn't have mouseReleased, but we prevent fall-through
         }
         return super.mouseReleased(mouseX, mouseY, button);
     }
@@ -247,9 +243,10 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (this.currentTab == Tabs.LAYOUT) {
-            if (this.shopLayoutWidget.mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
-                return true;
-            }
+            return this.shopLayoutWidget.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        } else if (this.currentTab == Tabs.MENU_INVENTORY) {
+            // Prevent dragging in the menu/inventory tab from affecting the layout
+            return false;
         }
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
@@ -257,9 +254,10 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (this.currentTab == Tabs.LAYOUT) {
-            if (this.shopLayoutWidget.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
-                return true;
-            }
+            return this.shopLayoutWidget.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        } else if (this.currentTab == Tabs.MENU_INVENTORY) {
+            // Prevent scrolling in the menu/inventory tab from affecting the layout
+            return false;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
