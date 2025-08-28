@@ -91,6 +91,7 @@ public class ZH_CN extends LanguageProvider {
         add("gui.foodieshop.shop_config.logs", "操作日志:");
         add("gui.foodieshop.shop_config.reset_layout.confirm.title", "确认重置布局");
         add("gui.foodieshop.shop_config.reset_layout.confirm.message", "你确定要重置所有布局设置吗？此操作无法撤销。");
+        add("gui.foodieshop.shop_config.business", "营业");
 
         // GUI - 图例
         add("gui.foodieshop.shop_config.legend.table", "桌子");
@@ -150,18 +151,19 @@ public class ZH_CN extends LanguageProvider {
         add("foodieshop.validation.error.invalid_path", "错误：路径无效。");
         add("foodieshop.validation.error.no_area", "错误：未设置店铺区域。");
         add("foodieshop.validation.error.cashier_mismatch", "错误：收银台与店铺区域不匹配。");
-        add("foodieshop.validation.error.no_tables", "错误：未设置桌子。");
-        add("foodieshop.validation.error.invalid_table", "错误：桌子无效，位于 %s。");
-        add("foodieshop.validation.error.no_seats", "错误：未设置座位。");
-        add("foodieshop.validation.error.invalid_seat", "错误：座位无效，位于 %s。");
-        add("foodieshop.validation.error.seat_not_connected_to_table", "错误：座位未连接到桌子，位于 %s。");
+        add("foodieshop.validation.warning.no_tables", "警告：未设置桌子。");
+        add("foodieshop.validation.warning.invalid_table", "警告：桌子无效，位于 %s。");
+        add("foodieshop.validation.warning.no_seats", "警告：未设置座位。");
+        add("foodieshop.validation.warning.invalid_seat", "警告：座位无效，位于 %s。");
+        add("foodieshop.validation.warning.seat_not_connected_to_table", "警告：座位未连接到桌子，位于 %s。");
         add("foodieshop.validation.error.no_path", "错误：未设置路径。");
         add("foodieshop.validation.error.no_path_entry", "错误：未设置路径入口。");
         add("foodieshop.validation.error.no_path_exit", "错误：未设置路径出口。");
-        add("foodieshop.validation.error.path_not_connected", "错误：路径未完全连接。");
+        add("foodieshop.validation.error.path_not_connected", "错误：路径入口和出口之间未连接。");
+        add("foodieshop.validation.warning.path_isolated_nodes", "警告：路径图中存在孤立节点。");
         add("foodieshop.validation.error.path_entry_not_in_nodes", "错误：路径入口不在路径节点中。");
         add("foodieshop.validation.error.path_exit_not_in_nodes", "错误：路径出口不在路径节点中。");
-        add("foodieshop.validation.error.seat_not_adjacent_to_path", "错误：座位未与路径相邻，位于 %s。");
+        add("foodieshop.validation.warning.seat_not_adjacent_to_path", "警告：座位未与路径相邻，位于 %s。");
         add("foodieshop.validation.error.no_menu_items", "错误：未设置菜单物品。");
         add("foodieshop.validation.error.unknown", "错误：未知验证错误。");
     }

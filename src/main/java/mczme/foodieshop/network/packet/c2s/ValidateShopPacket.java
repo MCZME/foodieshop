@@ -61,34 +61,34 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                         // 验证商店区域
                         if (config.getShopAreaPos1() == null || config.getShopAreaPos2() == null) {
                             validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_area", List.of()));
-                            resultType = ValidationResultType.ERROR;
+                            resultType = updateResultType(resultType, ValidationResultType.ERROR);
                         }
 
                         // 验证收银台位置
                         if (config.getCashierDeskLocation() == null) {
                             validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_cashier", List.of()));
-                            resultType = ValidationResultType.ERROR;
+                            resultType = updateResultType(resultType, ValidationResultType.ERROR);
                         } else if (!config.getCashierDeskLocation().equals(packet.pos)) {
                             validationMessages.add(new ValidationMessage("foodieshop.validation.error.cashier_mismatch", List.of()));
-                            resultType = ValidationResultType.ERROR;
+                            resultType = updateResultType(resultType, ValidationResultType.ERROR);
                         }
 
                         // 验证桌子和座位
                         if (config.getTableLocations().isEmpty()) {
-                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_tables", List.of()));
-                            resultType = ValidationResultType.ERROR;
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.warning.no_tables", List.of()));
+                            resultType = updateResultType(resultType, ValidationResultType.WARNING);
                         } else {
                             for (TableInfo table : config.getTableLocations()) {
                                 if (!table.isValid()) {
-                                    validationMessages.add(new ValidationMessage("foodieshop.validation.error.invalid_table", List.of(Component.literal(table.getCenter().toShortString()))));
-                                    resultType = ValidationResultType.ERROR;
+                                    validationMessages.add(new ValidationMessage("foodieshop.validation.warning.invalid_table", List.of(Component.literal(table.getCenter().toShortString()))));
+                                    resultType = updateResultType(resultType, ValidationResultType.WARNING);
                                 }
                             }
                         }
 
                         if (config.getSeatLocations().isEmpty()) {
-                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_seats", List.of()));
-                            resultType = ValidationResultType.ERROR;
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.warning.no_seats", List.of()));
+                            resultType = updateResultType(resultType, ValidationResultType.WARNING);
                         } else {
                             Set<BlockPos> allTableBlocks = config.getTableLocations().stream()
                                     .flatMap(table -> table.getLocations().stream())
@@ -96,8 +96,8 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
 
                             for (SeatInfo seat : config.getSeatLocations()) {
                                 if (!seat.isValid()) {
-                                    validationMessages.add(new ValidationMessage("foodieshop.validation.error.invalid_seat", List.of(Component.literal(seat.getLocation().toShortString()))));
-                                    resultType = ValidationResultType.ERROR;
+                                    validationMessages.add(new ValidationMessage("foodieshop.validation.warning.invalid_seat", List.of(Component.literal(seat.getLocation().toShortString()))));
+                                    resultType = updateResultType(resultType, ValidationResultType.WARNING);
                                 }
 
                                 boolean connectedToTable = false;
@@ -108,8 +108,8 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                                     }
                                 }
                                 if (!connectedToTable) {
-                                    validationMessages.add(new ValidationMessage("foodieshop.validation.error.seat_not_connected_to_table", List.of(Component.literal(seat.getLocation().toShortString()))));
-                                    resultType = ValidationResultType.ERROR;
+                                    validationMessages.add(new ValidationMessage("foodieshop.validation.warning.seat_not_connected_to_table", List.of(Component.literal(seat.getLocation().toShortString()))));
+                                    resultType = updateResultType(resultType, ValidationResultType.WARNING);
                                 }
                             }
                         }
@@ -118,30 +118,36 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                         PathGraph pathGraph = config.getPathGraph();
                         if (pathGraph == null || pathGraph.getNodes().isEmpty()) {
                             validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_path", List.of()));
-                            resultType = ValidationResultType.ERROR;
+                            resultType = updateResultType(resultType, ValidationResultType.ERROR);
                         } else {
                             if (pathGraph.getEntry() == null) {
                                 validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_path_entry", List.of()));
-                                resultType = ValidationResultType.ERROR;
+                                resultType = updateResultType(resultType, ValidationResultType.ERROR);
                             }
                             if (pathGraph.getExit() == null) {
                                 validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_path_exit", List.of()));
-                                resultType = ValidationResultType.ERROR;
+                                resultType = updateResultType(resultType, ValidationResultType.ERROR);
                             }
                             // 检查路径图连通性
-                            if (!isPathGraphConnected(pathGraph)) {
+                            PathConnectivityResult connectivity = checkPathConnectivity(pathGraph);
+                            if (!connectivity.isEntryExitConnected()) {
                                 validationMessages.add(new ValidationMessage("foodieshop.validation.error.path_not_connected", List.of()));
-                                resultType = ValidationResultType.ERROR;
+                                resultType = updateResultType(resultType, ValidationResultType.ERROR);
                             }
+                            if (connectivity.hasIsolatedNodes()) {
+                                validationMessages.add(new ValidationMessage("foodieshop.validation.warning.path_isolated_nodes", List.of()));
+                                resultType = updateResultType(resultType, ValidationResultType.WARNING);
+                            }
+
 
                             // 检查入口和出口是否在节点列表中
                             if (pathGraph.getEntry() != null && !pathGraph.getNodes().contains(pathGraph.getEntry())) {
                                 validationMessages.add(new ValidationMessage("foodieshop.validation.error.path_entry_not_in_nodes", List.of()));
-                                resultType = ValidationResultType.ERROR;
+                                resultType = updateResultType(resultType, ValidationResultType.ERROR);
                             }
                             if (pathGraph.getExit() != null && !pathGraph.getNodes().contains(pathGraph.getExit())) {
                                 validationMessages.add(new ValidationMessage("foodieshop.validation.error.path_exit_not_in_nodes", List.of()));
-                                resultType = ValidationResultType.ERROR;
+                                resultType = updateResultType(resultType, ValidationResultType.ERROR);
                             }
 
                             // 验证合法座位与路径图边的相邻性
@@ -155,8 +161,8 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                                         }
                                     }
                                     if (!adjacentToPath) {
-                                        validationMessages.add(new ValidationMessage("foodieshop.validation.error.seat_not_adjacent_to_path", List.of(Component.literal(seat.getLocation().toShortString()))));
-                                        resultType = ValidationResultType.ERROR;
+                                        validationMessages.add(new ValidationMessage("foodieshop.validation.warning.seat_not_adjacent_to_path", List.of(Component.literal(seat.getLocation().toShortString()))));
+                                        resultType = updateResultType(resultType, ValidationResultType.WARNING);
                                     }
                                 }
                             }
@@ -165,17 +171,13 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                         // 验证菜单物品
                         if (config.getMenuItems().isEmpty()) {
                             validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_menu_items", List.of()));
-                            resultType = ValidationResultType.ERROR;
+                            resultType = updateResultType(resultType, ValidationResultType.ERROR);
                         }
 
-                        // 如果没有特定错误，但结果类型仍为 SUCCESS，则添加成功消息
-                        if (validationMessages.isEmpty() && resultType == ValidationResultType.SUCCESS) {
+                        // 如果没有特定错误，则添加成功消息
+                        if (validationMessages.isEmpty()) {
                             validationMessages.add(new ValidationMessage("foodieshop.validation.success", List.of()));
-                        } else if (validationMessages.isEmpty() && resultType == ValidationResultType.ERROR) {
-                            // 如果有错误但没有具体消息，添加一个通用错误消息
-                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.unknown", List.of()));
                         }
-
 
                         PacketDistributor.sendToPlayer(player, new ValidateShopResultPacket(resultType, validationMessages));
                     }
@@ -218,28 +220,32 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
         return false;
     }
 
-    /**
-     * 检查路径图中的所有节点是否连通。
-     * 使用BFS算法。
-     */
-    private static boolean isPathGraphConnected(PathGraph graph) {
+    private static ValidationResultType updateResultType(ValidationResultType current, ValidationResultType newType) {
+        if (current.ordinal() < newType.ordinal()) {
+            return newType;
+        }
+        return current;
+    }
+
+    private record PathConnectivityResult(boolean isEntryExitConnected, boolean hasIsolatedNodes) {}
+
+    private static PathConnectivityResult checkPathConnectivity(PathGraph graph) {
+        BlockPos entry = graph.getEntry();
+        BlockPos exit = graph.getExit();
         List<BlockPos> nodes = graph.getNodes();
-        if (nodes.isEmpty()) {
-            return true; // 空图被认为是连通的
+
+        if (entry == null || exit == null || nodes.isEmpty()) {
+            return new PathConnectivityResult(false, !nodes.isEmpty());
         }
 
         Set<BlockPos> visited = new HashSet<>();
         Queue<BlockPos> queue = new LinkedList<>();
 
-        // 从第一个节点开始BFS
-        BlockPos startNode = nodes.get(0);
-        queue.offer(startNode);
-        visited.add(startNode);
+        queue.offer(entry);
+        visited.add(entry);
 
         while (!queue.isEmpty()) {
             BlockPos current = queue.poll();
-
-            // 查找与当前节点相邻的节点（通过边连接）
             for (List<BlockPos> edge : graph.getEdges()) {
                 BlockPos neighbor = null;
                 if (current.equals(edge.get(0))) {
@@ -255,7 +261,9 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
             }
         }
 
-        // 如果所有节点都被访问过，则图是连通的
-        return visited.size() == nodes.size();
+        boolean entryExitConnected = visited.contains(exit);
+        boolean hasIsolatedNodes = visited.size() < nodes.size();
+
+        return new PathConnectivityResult(entryExitConnected, hasIsolatedNodes);
     }
 }
