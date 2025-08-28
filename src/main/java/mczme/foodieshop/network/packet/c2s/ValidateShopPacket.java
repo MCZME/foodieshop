@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import mczme.foodieshop.network.packet.s2c.ValidateShopResultPacket.MessageType;
 import mczme.foodieshop.network.packet.s2c.ValidateShopResultPacket.ValidationMessage;
 import mczme.foodieshop.network.packet.s2c.ValidateShopResultPacket.ValidationResultType;
 import net.minecraft.network.chat.Component; // 导入 Component
@@ -61,34 +60,34 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
 
                         // 验证商店区域
                         if (config.getShopAreaPos1() == null || config.getShopAreaPos2() == null) {
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_NO_AREA, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_area", List.of()));
                             resultType = ValidationResultType.ERROR;
                         }
 
                         // 验证收银台位置
                         if (config.getCashierDeskLocation() == null) {
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_NO_CASHIER, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_cashier", List.of()));
                             resultType = ValidationResultType.ERROR;
                         } else if (!config.getCashierDeskLocation().equals(packet.pos)) {
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_CASHIER_MISMATCH, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.cashier_mismatch", List.of()));
                             resultType = ValidationResultType.ERROR;
                         }
 
                         // 验证桌子和座位
                         if (config.getTableLocations().isEmpty()) {
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_NO_TABLES, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_tables", List.of()));
                             resultType = ValidationResultType.ERROR;
                         } else {
                             for (TableInfo table : config.getTableLocations()) {
                                 if (!table.isValid()) {
-                                    validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_INVALID_TABLE, List.of(Component.literal(table.getCenter().toShortString()))));
+                                    validationMessages.add(new ValidationMessage("foodieshop.validation.error.invalid_table", List.of(Component.literal(table.getCenter().toShortString()))));
                                     resultType = ValidationResultType.ERROR;
                                 }
                             }
                         }
 
                         if (config.getSeatLocations().isEmpty()) {
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_NO_SEATS, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_seats", List.of()));
                             resultType = ValidationResultType.ERROR;
                         } else {
                             Set<BlockPos> allTableBlocks = config.getTableLocations().stream()
@@ -97,7 +96,7 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
 
                             for (SeatInfo seat : config.getSeatLocations()) {
                                 if (!seat.isValid()) {
-                                    validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_INVALID_SEAT, List.of(Component.literal(seat.getLocation().toShortString()))));
+                                    validationMessages.add(new ValidationMessage("foodieshop.validation.error.invalid_seat", List.of(Component.literal(seat.getLocation().toShortString()))));
                                     resultType = ValidationResultType.ERROR;
                                 }
 
@@ -109,7 +108,7 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                                     }
                                 }
                                 if (!connectedToTable) {
-                                    validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_SEAT_NOT_CONNECTED_TO_TABLE, List.of(Component.literal(seat.getLocation().toShortString()))));
+                                    validationMessages.add(new ValidationMessage("foodieshop.validation.error.seat_not_connected_to_table", List.of(Component.literal(seat.getLocation().toShortString()))));
                                     resultType = ValidationResultType.ERROR;
                                 }
                             }
@@ -118,30 +117,30 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                         // 验证路径图
                         PathGraph pathGraph = config.getPathGraph();
                         if (pathGraph == null || pathGraph.getNodes().isEmpty()) {
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_NO_PATH, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_path", List.of()));
                             resultType = ValidationResultType.ERROR;
                         } else {
                             if (pathGraph.getEntry() == null) {
-                                validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_NO_PATH_ENTRY, List.of()));
+                                validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_path_entry", List.of()));
                                 resultType = ValidationResultType.ERROR;
                             }
                             if (pathGraph.getExit() == null) {
-                                validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_NO_PATH_EXIT, List.of()));
+                                validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_path_exit", List.of()));
                                 resultType = ValidationResultType.ERROR;
                             }
                             // 检查路径图连通性
                             if (!isPathGraphConnected(pathGraph)) {
-                                validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_PATH_NOT_CONNECTED, List.of()));
+                                validationMessages.add(new ValidationMessage("foodieshop.validation.error.path_not_connected", List.of()));
                                 resultType = ValidationResultType.ERROR;
                             }
 
                             // 检查入口和出口是否在节点列表中
                             if (pathGraph.getEntry() != null && !pathGraph.getNodes().contains(pathGraph.getEntry())) {
-                                validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_PATH_ENTRY_NOT_IN_NODES, List.of()));
+                                validationMessages.add(new ValidationMessage("foodieshop.validation.error.path_entry_not_in_nodes", List.of()));
                                 resultType = ValidationResultType.ERROR;
                             }
                             if (pathGraph.getExit() != null && !pathGraph.getNodes().contains(pathGraph.getExit())) {
-                                validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_PATH_EXIT_NOT_IN_NODES, List.of()));
+                                validationMessages.add(new ValidationMessage("foodieshop.validation.error.path_exit_not_in_nodes", List.of()));
                                 resultType = ValidationResultType.ERROR;
                             }
 
@@ -156,7 +155,7 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                                         }
                                     }
                                     if (!adjacentToPath) {
-                                        validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_SEAT_NOT_ADJACENT_TO_PATH, List.of(Component.literal(seat.getLocation().toShortString()))));
+                                        validationMessages.add(new ValidationMessage("foodieshop.validation.error.seat_not_adjacent_to_path", List.of(Component.literal(seat.getLocation().toShortString()))));
                                         resultType = ValidationResultType.ERROR;
                                     }
                                 }
@@ -165,16 +164,16 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
 
                         // 验证菜单物品
                         if (config.getMenuItems().isEmpty()) {
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_NO_MENU_ITEMS, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.no_menu_items", List.of()));
                             resultType = ValidationResultType.ERROR;
                         }
 
                         // 如果没有特定错误，但结果类型仍为 SUCCESS，则添加成功消息
                         if (validationMessages.isEmpty() && resultType == ValidationResultType.SUCCESS) {
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_SUCCESS, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.success", List.of()));
                         } else if (validationMessages.isEmpty() && resultType == ValidationResultType.ERROR) {
                             // 如果有错误但没有具体消息，添加一个通用错误消息
-                            validationMessages.add(new ValidationMessage(MessageType.SHOP_VALIDATED_ERROR_UNKNOWN, List.of()));
+                            validationMessages.add(new ValidationMessage("foodieshop.validation.error.unknown", List.of()));
                         }
 
 

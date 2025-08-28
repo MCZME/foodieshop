@@ -151,17 +151,17 @@ public class ZH_CN extends LanguageProvider {
         add("foodieshop.validation.error.no_area", "错误：未设置店铺区域。");
         add("foodieshop.validation.error.cashier_mismatch", "错误：收银台与店铺区域不匹配。");
         add("foodieshop.validation.error.no_tables", "错误：未设置桌子。");
-        add("foodieshop.validation.error.invalid_table", "错误：桌子无效。");
+        add("foodieshop.validation.error.invalid_table", "错误：桌子无效，位于 %s。");
         add("foodieshop.validation.error.no_seats", "错误：未设置座位。");
-        add("foodieshop.validation.error.invalid_seat", "错误：座位无效。");
-        add("foodieshop.validation.error.seat_not_connected_to_table", "错误：座位未连接到桌子。");
+        add("foodieshop.validation.error.invalid_seat", "错误：座位无效，位于 %s。");
+        add("foodieshop.validation.error.seat_not_connected_to_table", "错误：座位未连接到桌子，位于 %s。");
         add("foodieshop.validation.error.no_path", "错误：未设置路径。");
         add("foodieshop.validation.error.no_path_entry", "错误：未设置路径入口。");
         add("foodieshop.validation.error.no_path_exit", "错误：未设置路径出口。");
         add("foodieshop.validation.error.path_not_connected", "错误：路径未完全连接。");
         add("foodieshop.validation.error.path_entry_not_in_nodes", "错误：路径入口不在路径节点中。");
         add("foodieshop.validation.error.path_exit_not_in_nodes", "错误：路径出口不在路径节点中。");
-        add("foodieshop.validation.error.seat_not_adjacent_to_path", "错误：座位未与路径相邻。");
+        add("foodieshop.validation.error.seat_not_adjacent_to_path", "错误：座位未与路径相邻，位于 %s。");
         add("foodieshop.validation.error.no_menu_items", "错误：未设置菜单物品。");
         add("foodieshop.validation.error.unknown", "错误：未知验证错误。");
     }
