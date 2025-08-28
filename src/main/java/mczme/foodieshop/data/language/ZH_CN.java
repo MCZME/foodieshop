@@ -92,6 +92,9 @@ public class ZH_CN extends LanguageProvider {
         add("gui.foodieshop.shop_config.reset_layout.confirm.title", "确认重置布局");
         add("gui.foodieshop.shop_config.reset_layout.confirm.message", "你确定要重置所有布局设置吗？此操作无法撤销。");
         add("gui.foodieshop.shop_config.business", "营业");
+        add("gui.foodieshop.shop_config.business_status", "营业状态:");
+        add("gui.foodieshop.shop_config.business_status.open", "正在营业");
+        add("gui.foodieshop.shop_config.business_status.closed", "已打烊");
 
         // GUI - 图例
         add("gui.foodieshop.shop_config.legend.table", "桌子");

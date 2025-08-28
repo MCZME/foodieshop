@@ -49,6 +49,10 @@ public class ShopValidationWidget {
         this.scrollWidget.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
+    public ValidateShopResultPacket.ValidationResultType getResultType() {
+        return this.lastValidationResultType;
+    }
+
     public void updateValidationResult(ValidateShopResultPacket.ValidationResultType resultType, List<Component> messages) {
         this.lastValidationResultType = resultType;
 

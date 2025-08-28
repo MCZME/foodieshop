@@ -23,8 +23,10 @@ public class ShopConfig {
     private Set<TableInfo> tableLocations;
     private PathGraph pathGraph;
     private Set<Item> menuItems;
+    private boolean isBusiness;
+    private boolean isModified;
 
-    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, Set<BlockPos> inventoryLocations, Set<BlockPos> deliveryBoxLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, Set<SeatInfo> seatLocations, Set<TableInfo> tableLocations, PathGraph pathGraph, Set<Item> menuItems) {
+    public ShopConfig(String shopId, String shopOwnerUUID, String ownerName, String shopName, BlockPos cashierDeskLocation, Set<BlockPos> inventoryLocations, Set<BlockPos> deliveryBoxLocations, BlockPos shopAreaPos1, BlockPos shopAreaPos2, Set<SeatInfo> seatLocations, Set<TableInfo> tableLocations, PathGraph pathGraph, Set<Item> menuItems, boolean isBusiness) {
         this.shopId = shopId;
         this.shopOwnerUUID = shopOwnerUUID;
         this.ownerName = ownerName != null ? ownerName : "";
@@ -38,6 +40,8 @@ public class ShopConfig {
         this.tableLocations = tableLocations != null ? tableLocations : new HashSet<>();
         this.pathGraph = pathGraph != null ? pathGraph : new PathGraph();
         this.menuItems = menuItems != null ? menuItems : new HashSet<>();
+        this.isBusiness = isBusiness;
+        this.isModified = false;
     }
 
     public CompoundTag toNbt() {
@@ -89,6 +93,7 @@ public class ShopConfig {
             menuList.add(StringTag.valueOf(BuiltInRegistries.ITEM.getKey(item).toString()));
         }
         tag.put("menuItems", menuList);
+        tag.putBoolean("isBusiness", this.isBusiness);
 
         return tag;
     }
@@ -144,7 +149,8 @@ public class ShopConfig {
             }
         }
 
-        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryLocations, deliveryBoxLocations, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph, menuItems);
+        boolean isBusiness = tag.getBoolean("isBusiness");
+        return new ShopConfig(shopId, shopOwnerUUID, ownerName, shopName, cashierDeskLocation, inventoryLocations, deliveryBoxLocations, shopAreaPos1, shopAreaPos2, seatLocations, tableLocations, pathGraph, menuItems, isBusiness);
     }
 
     public String getShopId() {
@@ -153,6 +159,7 @@ public class ShopConfig {
 
     public void setShopId(String shopId) {
         this.shopId = shopId;
+        this.isModified = true;
     }
 
     public String getOwnerName() {
@@ -161,6 +168,7 @@ public class ShopConfig {
 
     public void setOwnerName(String ownerName) {
         this.ownerName = ownerName;
+        this.isModified = true;
     }
 
     public String getShopName() {
@@ -169,6 +177,7 @@ public class ShopConfig {
 
     public void setShopName(String shopName) {
         this.shopName = shopName;
+        this.isModified = true;
     }
 
     public String getShopOwnerUUID() {
@@ -177,6 +186,7 @@ public class ShopConfig {
 
     public void setShopOwnerUUID(String shopOwnerUUID) {
         this.shopOwnerUUID = shopOwnerUUID;
+        this.isModified = true;
     }
 
     public BlockPos getCashierDeskLocation() {
@@ -185,6 +195,7 @@ public class ShopConfig {
 
     public void setCashierDeskLocation(BlockPos cashierDeskLocation) {
         this.cashierDeskLocation = cashierDeskLocation;
+        this.isModified = true;
     }
 
     public Set<BlockPos> getInventoryLocations() {
@@ -193,6 +204,7 @@ public class ShopConfig {
 
     public void setInventoryLocations(Set<BlockPos> inventoryLocations) {
         this.inventoryLocations = inventoryLocations;
+        this.isModified = true;
     }
 
     public Set<BlockPos> getDeliveryBoxLocations() {
@@ -201,6 +213,7 @@ public class ShopConfig {
 
     public void setDeliveryBoxLocations(Set<BlockPos> deliveryBoxLocations) {
         this.deliveryBoxLocations = deliveryBoxLocations;
+        this.isModified = true;
     }
 
     public BlockPos getShopAreaPos1() {
@@ -209,6 +222,7 @@ public class ShopConfig {
 
     public void setShopAreaPos1(BlockPos shopAreaPos1) {
         this.shopAreaPos1 = shopAreaPos1;
+        this.isModified = true;
     }
 
     public BlockPos getShopAreaPos2() {
@@ -217,6 +231,7 @@ public class ShopConfig {
 
     public void setShopAreaPos2(BlockPos shopAreaPos2) {
         this.shopAreaPos2 = shopAreaPos2;
+        this.isModified = true;
     }
 
     public Set<SeatInfo> getSeatLocations() {
@@ -225,6 +240,7 @@ public class ShopConfig {
 
     public void setSeatLocations(Set<SeatInfo> seatLocations) {
         this.seatLocations = seatLocations;
+        this.isModified = true;
     }
 
     public Set<TableInfo> getTableLocations() {
@@ -233,6 +249,7 @@ public class ShopConfig {
 
     public void setTableLocations(Set<TableInfo> tableLocations) {
         this.tableLocations = tableLocations;
+        this.isModified = true;
     }
 
     public PathGraph getPathGraph() {
@@ -241,6 +258,7 @@ public class ShopConfig {
 
     public void setPathGraph(PathGraph pathGraph) {
         this.pathGraph = pathGraph;
+        this.isModified = true;
     }
 
     public Set<Item> getMenuItems() {
@@ -249,11 +267,13 @@ public class ShopConfig {
 
     public void setMenuItems(Set<Item> menuItems) {
         this.menuItems = menuItems;
+        this.isModified = true;
     }
 
     public void togglePathNodeMode(BlockPos pos) {
         if (this.pathGraph != null) {
             this.pathGraph.toggleNodeMode(pos);
+            this.isModified = true;
         }
     }
 
@@ -308,5 +328,23 @@ public class ShopConfig {
             }
             table.setValid(hasValidSeat);
         }
+        this.isModified = true;
+    }
+
+    public boolean isBusiness() {
+        return isBusiness;
+    }
+
+    public void setBusiness(boolean business) {
+        isBusiness = business;
+        this.isModified = true;
+    }
+
+    public boolean isModified() {
+        return isModified;
+    }
+
+    public void setModified(boolean modified) {
+        isModified = modified;
     }
 }

@@ -3,6 +3,7 @@ package mczme.foodieshop.screen;
 import mczme.foodieshop.api.shop.ShopConfig;
 import mczme.foodieshop.block.blockentity.CashierDeskBlockEntity;
 import mczme.foodieshop.network.packet.c2s.ResetLayoutPacket;
+import mczme.foodieshop.network.packet.c2s.ToggleBusinessStatusPacket;
 import mczme.foodieshop.network.packet.c2s.UpdateShopConfigPacket;
 import mczme.foodieshop.network.packet.c2s.ValidateShopPacket;
 import net.minecraft.client.Minecraft;
@@ -43,7 +44,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
     public ShopConfigScreen(ShopConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         this.blockEntity = menu.getBlockEntity();
-        this.imageWidth = 220;
+        this.imageWidth = 240;
         this.imageHeight = 200;
     }
 
@@ -86,7 +87,7 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                 .build());
         this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.tab.save"), (button) -> this.setCurrentTab(Tabs.SAVE))
                 .pos(this.leftPos + 176, this.topPos + 5)
-                .size(40, 20)
+                .size(60, 20)
                 .build());
 
         if (this.currentTab == Tabs.GENERAL) {
@@ -125,12 +126,22 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
                     .build());
         } else if (this.currentTab == Tabs.SAVE) {
             this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.validate"), (button) -> {
-                if (Minecraft.getInstance().getConnection() != null) {
-                    Minecraft.getInstance().getConnection().send(new ValidateShopPacket(this.blockEntity.getBlockPos()));
-                }
-            })
-                    .pos(this.leftPos + (this.imageWidth / 2) - 40, this.topPos + this.imageHeight - 25)
-                    .size(80, 20)
+                        if (Minecraft.getInstance().getConnection() != null) {
+                            Minecraft.getInstance().getConnection().send(new ValidateShopPacket(this.blockEntity.getBlockPos()));
+                        }
+                    })
+                    .pos(this.leftPos + 65, this.topPos + this.imageHeight - 25)
+                    .size(50, 20)
+                    .build());
+            this.addRenderableWidget(Button.builder(Component.translatable("gui.foodieshop.shop_config.business"), (button) -> {
+                        if (this.shopValidationWidget.getResultType() != ValidateShopResultPacket.ValidationResultType.ERROR) {
+                            if (Minecraft.getInstance().getConnection() != null) {
+                                Minecraft.getInstance().getConnection().send(new ToggleBusinessStatusPacket(this.blockEntity.getBlockPos()));
+                            }
+                        }
+                    })
+                    .pos(this.leftPos + 125, this.topPos + this.imageHeight - 25)
+                    .size(50, 20)
                     .build());
         }
     }
@@ -201,6 +212,12 @@ public class ShopConfigScreen extends AbstractContainerScreen<ShopConfigMenu> {
 
         guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.shop_location"), this.leftPos + 10, this.topPos + 95, 0x404040, false);
         guiGraphics.drawString(this.font, this.blockEntity.getBlockPos().toShortString(), this.leftPos + 15, this.topPos + 105, 0x7F7F7F, false);
+
+        guiGraphics.drawString(this.font, Component.translatable("gui.foodieshop.shop_config.business_status"), this.leftPos + 10, this.topPos + 120, 0x404040, false);
+        boolean isBusiness = config.isBusiness();
+        Component statusComponent = isBusiness ? Component.translatable("gui.foodieshop.shop_config.business_status.open") : Component.translatable("gui.foodieshop.shop_config.business_status.closed");
+        int statusColor = isBusiness ? 0x00FF00 : 0xFF0000; // Green for open, Red for closed
+        guiGraphics.drawString(this.font, statusComponent, this.leftPos + 15, this.topPos + 130, statusColor, false);
     }
 
     @Override

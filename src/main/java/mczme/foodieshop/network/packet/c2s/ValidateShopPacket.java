@@ -179,6 +179,8 @@ public record ValidateShopPacket(BlockPos pos) implements CustomPacketPayload {
                             validationMessages.add(new ValidationMessage("foodieshop.validation.success", List.of()));
                         }
 
+                        config.setModified(false); // 重置修改标志,表示经过验证
+                        cashierDesk.setChanged();
                         PacketDistributor.sendToPlayer(player, new ValidateShopResultPacket(resultType, validationMessages));
                     }
                 }

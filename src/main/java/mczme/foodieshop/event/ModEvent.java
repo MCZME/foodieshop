@@ -8,14 +8,6 @@ import mczme.foodieshop.data.modelprovider.FoodieShopModelProvider;
 import mczme.foodieshop.data.tag.ModBlockTagsProvider;
 import mczme.foodieshop.data.tag.ModItemTagsProvider;
 import mczme.foodieshop.entity.FoodieEntity;
-import mczme.foodieshop.network.packet.c2s.ReloadTradingDataPacket;
-import mczme.foodieshop.network.packet.c2s.RequestStockContentsPacket;
-import mczme.foodieshop.network.packet.c2s.ResetLayoutPacket;
-import mczme.foodieshop.network.packet.c2s.TogglePathNodeModePacket;
-import mczme.foodieshop.network.packet.c2s.UpdateShopConfigPacket;
-import mczme.foodieshop.network.packet.c2s.ValidateShopPacket;
-import mczme.foodieshop.network.packet.s2c.UpdateStockContentsPacket;
-import mczme.foodieshop.network.packet.s2c.ValidateShopResultPacket;
 import mczme.foodieshop.registry.ModEntityTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
@@ -26,8 +18,6 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @EventBusSubscriber(modid = FoodieShop.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class ModEvent {
@@ -56,55 +46,6 @@ public class ModEvent {
                 blockTagsProvider.contentsGetter(), existingFileHelper));
     }
     
-    @SubscribeEvent
-    public static void register(final RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar(FoodieShop.MODID);
-
-        // 注册客户端到服务器的数据包
-        registrar.playToServer(
-                UpdateShopConfigPacket.TYPE,
-                UpdateShopConfigPacket.STREAM_CODEC,
-                UpdateShopConfigPacket::handle
-        );
-        registrar.playToServer(
-                ResetLayoutPacket.TYPE,
-                ResetLayoutPacket.STREAM_CODEC,
-                ResetLayoutPacket::handle
-        );
-        registrar.playToServer(
-                RequestStockContentsPacket.TYPE,
-                RequestStockContentsPacket.STREAM_CODEC,
-                RequestStockContentsPacket::handle
-        );
-        registrar.playToServer(
-                ReloadTradingDataPacket.TYPE,
-                ReloadTradingDataPacket.STREAM_CODEC,
-                ReloadTradingDataPacket::handle
-        );
-        registrar.playToServer(
-                TogglePathNodeModePacket.TYPE,
-                TogglePathNodeModePacket.STREAM_CODEC,
-                TogglePathNodeModePacket::handle
-        );
-        registrar.playToServer(
-                ValidateShopPacket.TYPE,
-                ValidateShopPacket.STREAM_CODEC,
-                ValidateShopPacket::handle
-        );
-
-        // 注册服务器到客户端的数据包
-        registrar.playToClient(
-                UpdateStockContentsPacket.TYPE,
-                UpdateStockContentsPacket.STREAM_CODEC,
-                UpdateStockContentsPacket::handle
-        );
-        registrar.playToClient(
-                ValidateShopResultPacket.TYPE,
-                ValidateShopResultPacket.STREAM_CODEC,
-                ValidateShopResultPacket::handle
-        );
-    }
-
     @SubscribeEvent
     public static void onModConfigLoad(final ModConfigEvent.Loading event) {
         // 配置加载事件不适合加载需要 HolderLookup.Provider 的数据
